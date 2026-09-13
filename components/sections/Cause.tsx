@@ -1,0 +1,103 @@
+import { GoldDivider, OrnamentalFrame, ScrollReveal, SectionContainer } from "@/components/design-system";
+import { aboutCause } from "@/data/content";
+
+/**
+ * Phase 08 — "A Story Worth Seeing," the blindness-awareness cause
+ * section. "A Story Worth Seeing" is sanctioned design copy — it's one
+ * of the project brief's own listed examples of acceptable marketing
+ * language — kept structurally separate from the section's one factual
+ * claim, which gets its own small label ("The Cause · Blindness")
+ * instead of being folded into the emotional headline.
+ *
+ * Every fact comes from `data/content.ts`'s `aboutCause`:
+ *
+ * - `description` — the organizer's own paragraph. No charity name, no
+ *   donation amount, no medical statistic, no beneficiary count appears
+ *   anywhere in the source material, so none appears here either — the
+ *   phase's "do not invent" list is a list of things this component
+ *   structurally cannot say, not a list of edits made to hide them.
+ * - `connectedEvent` — the one place the source documents tie the cause
+ *   to a specific piece of programming: the online Pencil Painting
+ *   event's own stated theme. Rendered as a quiet aside, not a second
+ *   headline, so it reads as "here's where the theme already shows up
+ *   this year" rather than a second competing claim.
+ *
+ * Visually restrained on purpose — a single soft aperture-of-light motif
+ * (concentric rings + a narrow gradient beam, both static, no per-scroll
+ * animation) rather than anything literal or dramatized, per the phase's
+ * explicit "respectful... not exploitative or overly dramatic."
+ */
+
+/**
+ * The section's one visual idea: a controlled beam of warm-gold light
+ * falling from above, opening into soft concentric rings — reads as
+ * both "light" and, loosely, "an eye adjusting to it," without drawing
+ * an actual eye (which risks reading as clinical or uncanny for a cause
+ * section about vision). Entirely static — no pulse, no scroll-trigger
+ * — matching `GoldDivider`'s precedent elsewhere in this design system
+ * that a decorative element sitting this close to solemn subject matter
+ * should never visibly move.
+ */
+function LightAperture() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 flex justify-center overflow-hidden">
+      {/* The beam: a narrow trapezoid widening as it falls, faded to nothing before it reaches the body text. */}
+      <div
+        className="absolute top-0 h-64 w-28 bg-gradient-to-b from-warm-gold/25 via-warm-gold/5 to-transparent sm:h-80 sm:w-36"
+        style={{ clipPath: "polygon(46% 0%, 54% 0%, 68% 100%, 32% 100%)" }}
+      />
+      <svg viewBox="0 0 200 200" className="mt-6 h-48 w-48 opacity-80 sm:h-60 sm:w-60">
+        <defs>
+          <radialGradient id="cause-aperture-core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#E8C76A" stopOpacity="0.5" />
+            <stop offset="45%" stopColor="#E8C76A" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#E8C76A" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="100" fill="url(#cause-aperture-core)" />
+        <circle cx="100" cy="100" r="72" fill="none" stroke="#C9A24D" strokeOpacity="0.22" strokeWidth="0.75" />
+        <circle cx="100" cy="100" r="48" fill="none" stroke="#C9A24D" strokeOpacity="0.32" strokeWidth="0.75" />
+        <circle cx="100" cy="100" r="24" fill="none" stroke="#E8C76A" strokeOpacity="0.45" strokeWidth="1" />
+      </svg>
+    </div>
+  );
+}
+
+export function Cause() {
+  return (
+    <section aria-labelledby="cause-heading" className="relative overflow-hidden">
+      <LightAperture />
+
+      <SectionContainer as="div" width="narrow" verticalPadding className="relative z-10">
+        <ScrollReveal>
+          <OrnamentalFrame padding="lg" className="flex flex-col items-center gap-6 text-center">
+            <p className="font-accent text-lg italic tracking-wide text-warm-gold sm:text-xl">
+              The Cause &middot; {aboutCause.cause}
+            </p>
+
+            <h2
+              id="cause-heading"
+              className="font-display text-4xl font-semibold tracking-wide text-ivory sm:text-5xl lg:text-6xl"
+            >
+              A Story Worth Seeing
+            </h2>
+
+            <GoldDivider size="lg" />
+
+            <p className="max-w-2xl font-body text-base leading-relaxed text-desert-sand sm:text-lg">
+              {aboutCause.description}
+            </p>
+
+            <blockquote className="mt-2 w-full max-w-xl border-l-2 border-antique-gold/40 pl-5 text-left sm:mt-4">
+              <p className="font-accent text-base italic leading-relaxed text-ivory sm:text-lg">
+                This year&apos;s theme carries into the events too — the online{" "}
+                {aboutCause.connectedEvent.name} event asks entrants to imagine{" "}
+                <span className="text-antique-gold">&ldquo;{aboutCause.connectedEvent.theme}.&rdquo;</span>
+              </p>
+            </blockquote>
+          </OrnamentalFrame>
+        </ScrollReveal>
+      </SectionContainer>
+    </section>
+  );
+}
