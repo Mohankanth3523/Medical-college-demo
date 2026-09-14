@@ -45,3 +45,6 @@ export type { ScrollRevealProps } from "./ScrollReveal";
 
 export { Accordion } from "./Accordion";
 export type { AccordionProps, AccordionItemData } from "./Accordion";
+
+export { BrandLogo } from "./BrandLogo";
+export type { BrandLogoProps } from "./BrandLogo";

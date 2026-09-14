@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Crescent, GoldDivider, PalaceSilhouette, SectionContainer, StarField } from "@/components/design-system";
+import { BrandLogo, Crescent, GoldDivider, PalaceSilhouette, SectionContainer, StarField } from "@/components/design-system";
 import { festivalIdentity } from "@/data/content";
+import { siteBranding } from "@/data/branding";
 import { generalWhatsApp, instagramHandle } from "@/data/contacts";
 import { toWhatsAppHref, toInstagramHref } from "@/lib/contact/contactLinks";
 import { ChatGlyph, CameraGlyph } from "@/components/contact/ContactIcons";
@@ -55,6 +56,15 @@ function LinkDot() {
  * distracting rather than atmospheric. One of the two verified
  * `festivalIdentity.taglines` now appears as a small attributed quote in
  * the brand column — already-sourced copy, not a new claim.
+ *
+ * Phase 29: a very small, compact digital-partners row was added to the
+ * closing colophon (below the divider, beside the existing crest/closing
+ * line) — not a fourth grid column, since the three-column layout above
+ * is a deliberate institutional/navigation/social split the brief never
+ * asked to change. Kept the smallest digital-partner treatment anywhere
+ * on the site (`h-8 sm:h-9`), per the brief's "kept smaller than the main
+ * identity... do not duplicate logos excessively" instruction for the
+ * footer specifically.
  */
 export function Footer() {
   return (
@@ -148,11 +158,32 @@ export function Footer() {
 
         <GoldDivider size="sm" />
 
-        <div className="flex flex-col items-center gap-3">
-          <Crescent size={16} className="text-antique-gold/50" />
-          <p className="text-center font-body text-xs tracking-wide text-desert-sand/60">
-            {festivalIdentity.name} — {festivalIdentity.institution}
-          </p>
+        <div className="flex flex-col items-center gap-5">
+          <div className="flex flex-col items-center gap-3">
+            <Crescent size={16} className="text-antique-gold/50" />
+            <p className="text-center font-body text-xs tracking-wide text-desert-sand/60">
+              {festivalIdentity.name} — {festivalIdentity.institution}
+            </p>
+          </div>
+
+          {siteBranding.digitalPartners.length > 0 ? (
+            <div className="flex flex-col items-center gap-2">
+              <p className="font-body text-[10px] font-semibold uppercase tracking-[0.2em] text-desert-sand/50">
+                Digital Partners
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {siteBranding.digitalPartners.map((partner) => (
+                  <BrandLogo
+                    key={partner.name}
+                    src={partner.logo}
+                    alt={partner.alt}
+                    heightClassName="h-8 sm:h-9"
+                    padding="sm"
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </SectionContainer>
     </footer>

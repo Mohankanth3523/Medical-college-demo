@@ -1,7 +1,9 @@
 # AFFINITY '26 — Frontend
 
-Phase 28 deliverable: a session-gated cinematic opening (lamp → video →
-homepage), for AFFINITY '26 (11th
+Phase 29 deliverable: official brand logo integration (College, event
+emblem, Dhruvaas batch, and digital partners MKZORA/Garudan Nexus) across
+the Hero, a new Digital Partners section, Footer, Registration page, and
+the Registration Pass, for AFFINITY '26 (11th
 Edition, Karpaga Vinayaga Institute of Medical Sciences and Research
 Centre, Dhruvaas batch, Arabian Nights theme). **Frontend only** — see
 `docs/frontend-audit.md` and `docs/affinity-content-truth.md` (from
@@ -501,6 +503,29 @@ Phase 01) for full scope and source-of-truth rules.
   phase brief's own wording and the still-open, browser-only-verifiable
   items (real mobile autoplay behavior, actual video duration vs. the
   stuck-timeout, lamp/genie composition at narrow widths).
+- ✅ **Phase 29 — Brand logo integration**: the five official assets
+  (College, AFFINITY '26 event emblem, Dhruvaas batch, and digital
+  partners MKZORA/Garudan Nexus) verified byte-identical to their
+  uploaded sources and placed, unmodified, in `public/assets/logo/`.
+  A new centralized `data/branding.ts` (`siteBranding`) is the only place
+  any logo path or brand alt text lives; `components/design-system/
+  BrandLogo.tsx` is the only component that renders one, always at
+  `width: auto` against a caller-set height — nothing is ever cropped,
+  recolored, or stretched. Integrated into the Hero (a dominant event-
+  emblem seal plus a small College/Dhruvaas row, inside the existing
+  reveal animation — no new stage), a new dedicated Digital Partners
+  section on the homepage, the Footer's closing colophon, an optional
+  compact identity row on `/register`, and the Registration Pass (the old
+  decorative crest glyph replaced by the real event emblem; digital
+  partners appear there as a single text line, never as logo images, so
+  they can't dominate a pass a participant might screenshot). Neither
+  digital partner has an official URL in the source documents, so both
+  render unlinked rather than guessing one. The Navbar is deliberately
+  unchanged — no compact logo variant was supplied, and the brief
+  explicitly disallows inventing one. See
+  `docs/phase-29-brand-logo-integration-notes.md` for the full reasoning,
+  including the "never crop" vs. legibility trade-off this phase accepts
+  and documents rather than silently resolving.
 
 ## ⚠️ Verification could not be fully automated in this session
 
@@ -549,15 +574,21 @@ dependencies), re-run at the end of every phase including Phase 03:
   its importers until now). `data/pricing.ts` (Phase 15) and
   `data/rules.ts` (Phase 16) were also added to the explicitly-checked
   file list in their respective phases (previously only checked
-  transitively via their importers).
-- Every `.ts`/`.tsx` file in the project — **79 files as of Phase 28**
-  (77 unchanged through Phase 27; Phase 28 added
-  `components/intro/CinematicIntro.tsx` and `lib/intro/introStorage.ts`)
-  — parses as syntactically valid TypeScript/JSX via `esbuild`.
-- Every `@/...` import in the codebase (**169 as of Phase 28** — 167
-  unchanged through Phase 27; Phase 28 added two, `app/page.tsx` →
-  `CinematicIntro` and `CinematicIntro` → `introStorage`) resolves to a
-  real file on disk (checked by script, not by eye).
+  transitively via their importers). Phase 28 added `lib/intro/
+  introStorage.ts`; Phase 29 added `data/branding.ts` (the `siteBranding`
+  registry) — **26 files as of Phase 29** in this strict pass, zero
+  errors.
+- Every `.ts`/`.tsx` file in the project — **83 files as of Phase 29**
+  (79 unchanged through Phase 28; Phase 29 added `data/branding.ts`,
+  `components/design-system/BrandLogo.tsx`,
+  `components/branding/DigitalPartners.tsx`, and
+  `components/sections/DigitalPartnersSection.tsx`) — parses as
+  syntactically valid TypeScript/JSX via `esbuild`.
+- Every `@/...` import in the codebase (**180 as of Phase 29** — 169
+  unchanged through Phase 28; Phase 29 added eleven, across the four new
+  files above and the four files edited to use them: `Hero.tsx`,
+  `Footer.tsx`, `RegistrationLayout.tsx`, `RegistrationPass.tsx`)
+  resolves to a real file on disk (checked by script, not by eye).
 - Phase 09 brought the full `data/events/*` layer (all ~56 event
   records) into the strict `tsc --noEmit` pass for the first time,
   alongside `lib/events/formatFee.ts`; Phase 10 added

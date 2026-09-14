@@ -1,4 +1,5 @@
 import { festivalIdentity } from "@/data/content";
+import { siteBranding } from "@/data/branding";
 import { SectionContainer } from "@/components/design-system/SectionContainer";
 import { GoldDivider } from "@/components/design-system/GoldDivider";
 import { GoldButton } from "@/components/design-system/GoldButton";
@@ -7,6 +8,7 @@ import { StarField } from "@/components/design-system/StarField";
 import { Crescent } from "@/components/design-system/Crescent";
 import { Lantern } from "@/components/design-system/Lantern";
 import { PalaceSilhouette } from "@/components/design-system/PalaceSilhouette";
+import { BrandLogo } from "@/components/design-system/BrandLogo";
 
 /**
  * Design copy, not an official fact — one of the project brief's own
@@ -44,6 +46,18 @@ const THEME_LABEL = "Arabian Nights";
  * shown, per the brief's own instruction. No invented statistics either
  * — the only numbers here (`festivalIdentity.edition`) come straight
  * from verified source data.
+ *
+ * Phase 29: three official brand marks were added into the existing
+ * "4. Title reveals" reveal group — no new animation stage, so the
+ * six-step choreography above is unchanged. Hierarchy, smallest to
+ * largest: a small College + Dhruvaas row at the very top ("top
+ * institutional," per the brief), then the existing "Presented by…"
+ * line, then the AFFINITY '26 event emblem itself as a dominant seal
+ * ("main focal") directly above the `<h1>` wordmark — the event logo is
+ * the largest brand mark anywhere on this page, on purpose. Digital
+ * partners are deliberately absent from the hero — they get their own
+ * section (`DigitalPartnersSection`) rather than crowding this one, per
+ * the brief's "do not clutter the hero" instruction.
  */
 export function Hero() {
   return (
@@ -115,12 +129,39 @@ export function Hero() {
       <SectionContainer as="div" width="narrow" className="relative z-10 py-section-2xl text-center">
         {/* 4. Title reveals */}
         <div className="animate-hero-4">
-          <p className="font-accent text-lg italic text-warm-gold sm:text-xl">
+          {/* Top institutional row — small and quiet, secondary to everything below it. */}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <BrandLogo
+              src={siteBranding.college.logo}
+              alt={siteBranding.college.alt}
+              heightClassName="h-10 sm:h-12"
+              padding="sm"
+            />
+            <BrandLogo
+              src={siteBranding.batch.logo}
+              alt={siteBranding.batch.alt}
+              heightClassName="h-10 sm:h-12"
+              padding="sm"
+            />
+          </div>
+
+          <p className="mt-4 font-accent text-lg italic text-warm-gold sm:mt-5 sm:text-xl">
             Presented by the {festivalIdentity.presentedBy}
           </p>
+
+          {/* Main focal mark — the official event emblem, deliberately the largest brand mark on this page. */}
+          <div className="mt-5 flex justify-center sm:mt-6">
+            <BrandLogo
+              src={siteBranding.event.logo}
+              alt={siteBranding.event.alt}
+              heightClassName="h-20 sm:h-28 lg:h-32"
+              padding="lg"
+            />
+          </div>
+
           <h1
             id="hero-heading"
-            className="mt-3 font-display text-4xl font-semibold leading-tight tracking-wide text-ivory sm:mt-4 sm:text-6xl lg:text-7xl"
+            className="mt-5 font-display text-4xl font-semibold leading-tight tracking-wide text-ivory sm:mt-6 sm:text-6xl lg:text-7xl"
           >
             {festivalIdentity.name}
           </h1>

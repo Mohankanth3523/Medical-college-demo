@@ -3,6 +3,7 @@ import { Story } from "@/components/sections/Story";
 import { Theme } from "@/components/sections/Theme";
 import { Cause } from "@/components/sections/Cause";
 import { EventsTeaser } from "@/components/sections/EventsTeaser";
+import { DigitalPartnersSection } from "@/components/sections/DigitalPartnersSection";
 import { CinematicIntro } from "@/components/intro/CinematicIntro";
 
 /**
@@ -19,6 +20,10 @@ import { CinematicIntro } from "@/components/intro/CinematicIntro";
  * what makes "play once per session, never again on other routes" true
  * without any route-level logic. It's `position: fixed`, so its presence
  * here doesn't shift `Hero` or anything below it in the document flow.
+ *
+ * Phase 29: `DigitalPartnersSection` is inserted after `EventsTeaser` and
+ * before the (globally-mounted) `Footer` — its own dedicated moment, per
+ * the brief's instruction, rather than folded into an existing section.
  */
 export default function LandingPage() {
   return (
@@ -34,6 +39,8 @@ export default function LandingPage() {
       <Cause />
 
       <EventsTeaser />
+
+      <DigitalPartnersSection />
     </div>
   );
 }

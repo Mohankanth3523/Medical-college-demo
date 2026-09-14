@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { SectionContainer } from "@/components/design-system";
+import { BrandLogo, SectionContainer } from "@/components/design-system";
+import { siteBranding } from "@/data/branding";
 
 export interface RegistrationLayoutProps {
   progress: ReactNode;
@@ -19,12 +20,44 @@ export interface RegistrationLayoutProps {
  * the step content, `RegistrationNavigation`) is passed in already built,
  * so this component stays reusable even if `/register` ever needed a
  * second entry point with different content in the same shell.
+ *
+ * Phase 29: a small, compact institutional identity row (College, event
+ * emblem, Dhruvaas — all at the same small size, no dominant mark here)
+ * sits above the heading, per the brief's "optional compact institutional
+ * identity" allowance for this page — kept deliberately quiet so the
+ * registration form itself stays the focus, and with no digital-partner
+ * logos at all ("do not place all logos around the registration form").
  */
 export function RegistrationLayout({ progress, summary, children }: RegistrationLayoutProps) {
   return (
     <SectionContainer as="div" width="wide" verticalPadding>
       <div className="flex flex-col items-center gap-3 text-center">
-        <h1 className="font-display text-4xl font-semibold tracking-wide text-ivory sm:text-5xl lg:text-6xl">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <BrandLogo
+            src={siteBranding.college.logo}
+            alt={siteBranding.college.alt}
+            heightClassName="h-9 sm:h-10"
+            padding="sm"
+          />
+          {/* Event emblem kept modestly larger than College/Dhruvaas even in
+              this compact row, so the site-wide "event logo is always the
+              most prominent mark" hierarchy rule holds here too — not just
+              in the Hero, where the difference is much more dramatic. */}
+          <BrandLogo
+            src={siteBranding.event.logo}
+            alt={siteBranding.event.alt}
+            heightClassName="h-10 sm:h-12"
+            padding="sm"
+          />
+          <BrandLogo
+            src={siteBranding.batch.logo}
+            alt={siteBranding.batch.alt}
+            heightClassName="h-9 sm:h-10"
+            padding="sm"
+          />
+        </div>
+
+        <h1 className="mt-2 font-display text-4xl font-semibold tracking-wide text-ivory sm:mt-3 sm:text-5xl lg:text-6xl">
           The Royal Registry
         </h1>
         <p className="font-accent text-lg italic text-warm-gold sm:text-xl">

@@ -5,7 +5,16 @@ import Link from "next/link";
 import { useRegistration } from "@/lib/registration/context";
 import { getEventById } from "@/data/events";
 import type { PaymentStatus } from "@/types/registration";
-import { SectionContainer, SectionHeading, GoldDivider, GoldButton, SecondaryButton, OrnamentalFrame } from "@/components/design-system";
+import {
+  SectionContainer,
+  SectionHeading,
+  GoldDivider,
+  GoldButton,
+  SecondaryButton,
+  OrnamentalFrame,
+  BrandLogo,
+} from "@/components/design-system";
+import { siteBranding } from "@/data/branding";
 
 function formatRupees(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`;
@@ -60,22 +69,6 @@ function QRPlaceholder() {
           ) : null,
         ),
       )}
-    </svg>
-  );
-}
-
-/** Small pencil-line "AFFINITY" crest — a minimal ornament for the pass header, not a real emblem/logo asset. */
-function CrestGlyph() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 32 32" className="h-8 w-8 shrink-0 text-antique-gold">
-      <path
-        d="M16 3 L27 9 V17 C27 23.5 22.2 27.7 16 29 C9.8 27.7 5 23.5 5 17 V9 Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <path d="M16 10 L19 17 L16 22 L13 17 Z" fill="currentColor" opacity="0.85" />
     </svg>
   );
 }
@@ -146,6 +139,17 @@ function buildPassHtml(data: {
  * upstream (Phase 15/16's pricing calculator, Phase 17's payment-status
  * value) — this page only displays what `state` already holds, it adds
  * no new computation.
+ *
+ * Phase 29: the decorative pencil-line "crest" glyph that used to sit in
+ * the header has been replaced with the real, official AFFINITY '26
+ * event emblem (`BrandLogo`, small — matching the glyph's old footprint,
+ * not enlarged) — the brief's own success-page section asks for the
+ * event's official identity here, not an invented ornament standing in
+ * for it. Digital partners get a single small, plain-TEXT line near the
+ * bottom (no logo images at all) — the brief is explicit that partner
+ * branding must never dominate the registration pass, and a demo pass a
+ * participant might screenshot or print is exactly the surface where
+ * "dominate" is easiest to accidentally do with two more logo images.
  */
 export function RegistrationPass() {
   const { state } = useRegistration();
@@ -249,7 +253,25 @@ export function RegistrationPass() {
           </span>
 
           <div className="flex items-center gap-3">
-            <CrestGlyph />
+            <BrandLogo
+              src={siteBranding.event.logo}
+              alt={siteBranding.event.alt}
+              heightClassName="h-8 sm:h-9"
+              padding="sm"
+              className="print:hidden"
+            />
+            {/* Print variant: `BrandLogo`'s ivory plaque is redundant once
+                the whole pass card is already printed on an ivory ground
+                (see `print:bg-ivory` on OrnamentalFrame above) — swap to
+                the bare image so print output doesn't show a visible box
+                around the mark for no reason. */}
+            <BrandLogo
+              src={siteBranding.event.logo}
+              alt={siteBranding.event.alt}
+              heightClassName="h-8"
+              variant="bare"
+              className="hidden print:inline-flex"
+            />
             <div>
               <p className="font-body text-xs font-medium uppercase tracking-[0.2em] text-desert-sand print:text-midnight/70">
                 AFFINITY &apos;26
@@ -332,6 +354,13 @@ export function RegistrationPass() {
               Demo QR — verification will be connected later
             </p>
           </div>
+
+          {siteBranding.digitalPartners.length > 0 ? (
+            <p className="mt-6 border-t border-antique-gold/20 pt-4 text-center font-body text-[10px] uppercase tracking-[0.15em] text-desert-sand/70 print:border-midnight/20 print:text-midnight/60">
+              Digital Partners —{" "}
+              {siteBranding.digitalPartners.map((partner) => partner.name).join(" · ")}
+            </p>
+          ) : null}
         </OrnamentalFrame>
       </div>
 
