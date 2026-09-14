@@ -115,6 +115,13 @@ export function Navbar() {
 
   return (
     <header
+      // Phase 28: a stable hook `CinematicIntro` reaches for (by id, from
+      // outside this component's own tree) to mark this header `inert`
+      // while the intro overlay is up — otherwise a keyboard/screen-reader
+      // user could tab into the live nav underneath before the intro
+      // finishes, even though it's visually covered. See CinematicIntro's
+      // own doc comment for the full reasoning.
+      id="site-navbar"
       className={[
         "fixed inset-x-0 top-0 z-40 transition-colors duration-base",
         scrolled

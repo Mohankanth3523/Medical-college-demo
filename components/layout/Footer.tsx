@@ -58,7 +58,10 @@ function LinkDot() {
  */
 export function Footer() {
   return (
-    <footer className="relative mt-24 overflow-hidden border-t border-antique-gold/25 bg-royal-navy">
+    <footer
+      id="site-footer"
+      className="relative mt-24 overflow-hidden border-t border-antique-gold/25 bg-royal-navy"
+    >
       {/* Atmosphere: same restrained night-sky + palace-horizon motif used elsewhere, kept static so it reads as texture, not a second hero moment. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <StarField animated={false} className="opacity-40" />

@@ -1,6 +1,7 @@
 # AFFINITY '26 — Frontend
 
-Phase 27 deliverable: a footer visual redesign, for AFFINITY '26 (11th
+Phase 28 deliverable: a session-gated cinematic opening (lamp → video →
+homepage), for AFFINITY '26 (11th
 Edition, Karpaga Vinayaga Institute of Medical Sciences and Research
 Centre, Dhruvaas batch, Arabian Nights theme). **Frontend only** — see
 `docs/frontend-audit.md` and `docs/affinity-content-truth.md` (from
@@ -479,6 +480,27 @@ Phase 01) for full scope and source-of-truth rules.
   tab)" suffix). See `docs/phase-26-accessibility-audit-notes.md` for the
   full audit, including what was reviewed and deliberately left
   unchanged.
+- ✅ **Phase 28 — Cinematic intro**: a full-viewport, session-gated opening
+  built around three user-supplied assets in `public/intro/` (lamp image,
+  genie image, intro video) — `components/intro/CinematicIntro.tsx`,
+  mounted once on the homepage only. Plays the supplied video (no
+  CSS-recreated animation, per the brief) once per browsing tab
+  (`sessionStorage`, via `lib/intro/introStorage.ts`), with an always-
+  immediate "Skip Intro" button, full `prefers-reduced-motion` support (no
+  video ever mounts for those users — see the phase notes for how "show
+  immediately" and "short elegant fade" are both satisfied by the
+  project's existing global reduced-motion gate rather than a special
+  case), and a graceful static-lamp-image fallback (plus an 8-second
+  stuck-timer, not just `onError`) if the video can't play at all. A
+  dual no-flash mechanism (a pre-hydration inline `<script>` plus a
+  `useLayoutEffect`) keeps repeat visits from showing even one flashed
+  frame of the overlay, and `Navbar`/`Footer` are marked `inert` while the
+  intro is up so keyboard/screen-reader users can't tab into the live nav
+  hidden underneath it. See `docs/phase-28-cinematic-intro-notes.md` for
+  the full reasoning, including one asset-filename correction from the
+  phase brief's own wording and the still-open, browser-only-verifiable
+  items (real mobile autoplay behavior, actual video duration vs. the
+  stuck-timeout, lamp/genie composition at narrow widths).
 
 ## ⚠️ Verification could not be fully automated in this session
 
@@ -528,12 +550,14 @@ dependencies), re-run at the end of every phase including Phase 03:
   `data/rules.ts` (Phase 16) were also added to the explicitly-checked
   file list in their respective phases (previously only checked
   transitively via their importers).
-- Every `.ts`/`.tsx` file in the project — **77 files, unchanged through
-  Phase 27** (Phases 26–27 only edited existing files — see below — no
-  new ones) — parses as syntactically valid TypeScript/JSX via `esbuild`.
-- Every `@/...` import in the codebase (**167, unchanged through
-  Phase 27**) resolves to a real file on disk (checked by script, not by
-  eye).
+- Every `.ts`/`.tsx` file in the project — **79 files as of Phase 28**
+  (77 unchanged through Phase 27; Phase 28 added
+  `components/intro/CinematicIntro.tsx` and `lib/intro/introStorage.ts`)
+  — parses as syntactically valid TypeScript/JSX via `esbuild`.
+- Every `@/...` import in the codebase (**169 as of Phase 28** — 167
+  unchanged through Phase 27; Phase 28 added two, `app/page.tsx` →
+  `CinematicIntro` and `CinematicIntro` → `introStorage`) resolves to a
+  real file on disk (checked by script, not by eye).
 - Phase 09 brought the full `data/events/*` layer (all ~56 event
   records) into the strict `tsc --noEmit` pass for the first time,
   alongside `lib/events/formatFee.ts`; Phase 10 added
