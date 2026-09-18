@@ -61,10 +61,26 @@ function LinkDot() {
  * closing colophon (below the divider, beside the existing crest/closing
  * line) — not a fourth grid column, since the three-column layout above
  * is a deliberate institutional/navigation/social split the brief never
- * asked to change. Kept the smallest digital-partner treatment anywhere
- * on the site (`h-8 sm:h-9`), per the brief's "kept smaller than the main
- * identity... do not duplicate logos excessively" instruction for the
- * footer specifically.
+ * asked to change.
+ *
+ * Phase 33: two changes to that colophon, both direct requests from that
+ * session. First, the digital-partners row itself grew from Phase 29's
+ * `h-8 sm:h-9` (deliberately the smallest digital-partner treatment
+ * anywhere on the site) to `h-11 sm:h-12` — still visibly smaller than
+ * the homepage Digital Partners section's own marks, so the footer stays
+ * the "quietest" of the three places partner logos appear, but no longer
+ * so small they read as an afterthought. Second, a new, separate
+ * "Website powered by MKZORA" line was added below the general Digital
+ * Partners row — this is *not* another digital-partner credit; it's a
+ * distinct "built by" attribution for one specific partner, in a role
+ * "Digital Partner" doesn't capture, using `siteBranding.poweredBy`
+ * (kept as its own field in `data/branding.ts`, reusing MKZORA's
+ * identity rather than duplicating it — see that file's own comment).
+ * Since `Footer` mounts once in the root layout and renders on every
+ * route, this one line is what makes MKZORA's "powered by" credit
+ * sitewide, without adding a third-party mark to the primary nav or to
+ * `RegistrationPass`'s own deliberately logo-free digital-partners line
+ * (both left untouched — see those files' own comments for why).
  */
 export function Footer() {
   return (
@@ -171,19 +187,31 @@ export function Footer() {
               <p className="font-body text-[10px] font-semibold uppercase tracking-[0.2em] text-desert-sand/50">
                 Digital Partners
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 {siteBranding.digitalPartners.map((partner) => (
                   <BrandLogo
                     key={partner.name}
                     src={partner.logo}
                     alt={partner.alt}
-                    heightClassName="h-8 sm:h-9"
+                    heightClassName="h-11 sm:h-12"
                     padding="sm"
                   />
                 ))}
               </div>
             </div>
           ) : null}
+
+          <div className="flex flex-col items-center gap-2 border-t border-antique-gold/10 pt-5">
+            <p className="font-body text-[10px] font-semibold uppercase tracking-[0.2em] text-desert-sand/50">
+              Website Powered By
+            </p>
+            <BrandLogo
+              src={siteBranding.poweredBy.logo}
+              alt={siteBranding.poweredBy.alt}
+              heightClassName="h-9 sm:h-10"
+              padding="sm"
+            />
+          </div>
         </div>
       </SectionContainer>
     </footer>

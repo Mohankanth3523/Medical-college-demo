@@ -8,6 +8,7 @@ import { validateParticipant, type ParticipantErrors } from "@/lib/registration/
 import { pgEligibilityConflict } from "@/data/registrationVerification";
 import { YEAR_OF_STUDY_OPTIONS } from "@/lib/registration/participantLabels";
 import { EventBadge } from "@/components/design-system";
+import { CollegeCombobox } from "@/components/registration/CollegeCombobox";
 
 type FieldName = keyof ParticipantErrors;
 
@@ -25,7 +26,7 @@ function borderClass(hasError: boolean): string {
 }
 
 /**
- * Step 01 — "The Traveller". Fields match the official registration form
+ * Step 01 — Participant Details. Fields match the official registration form
  * exactly (docs/affinity-content-truth.md §4): name, college, year of
  * study, phone, email — see lib/registration/validation.ts for the
  * validation rules themselves (frontend UX judgment calls, not sourced
@@ -41,6 +42,13 @@ function borderClass(hasError: boolean): string {
  * invalid one — this step is the wizard's first with real validation, so
  * this is also where that "Next" ↔ form-submit wiring is introduced; see
  * docs/phase-12-participant-step-notes.md.
+ *
+ * Phase 29: College Name is now `CollegeCombobox`, not a free-text
+ * `<input>` — the participant must pick one of the 86 official colleges
+ * in `data/colleges.ts`; nothing else is a valid value (see
+ * `lib/registration/validation.ts`). `collegeRef` still gets focused on a
+ * failed submit exactly as before, via the combobox's own `inputRef` prop
+ * forwarding to its internal text input.
  */
 export function ParticipantStep() {
   const { state, dispatch } = useRegistration();
@@ -96,8 +104,10 @@ export function ParticipantStep() {
   return (
     <form id="participant-form" noValidate onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1">
-        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">The Traveller</h3>
-        <p className="font-accent text-base italic text-warm-gold">Every tale begins with a name.</p>
+        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Participant Details</h3>
+        <p className="font-accent text-base italic text-warm-gold">
+          Enter your details to begin your AFFINITY &apos;26 registration.
+        </p>
       </div>
 
       <fieldset className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -131,21 +141,22 @@ export function ParticipantStep() {
           <label htmlFor="participant-college" className={LABEL_CLASS}>
             College Name <span aria-hidden="true" className="text-error-rose">*</span>
           </label>
-          <input
-            id="participant-college"
-            ref={collegeRef}
-            type="text"
-            autoComplete="organization"
-            value={participant.collegeName}
-            onChange={(e) =>
-              dispatch({ type: "UPDATE_PARTICIPANT", patch: { collegeName: e.target.value } })
-            }
-            onBlur={() => markTouched("collegeName")}
-            aria-required="true"
-            aria-invalid={isShown("collegeName") || undefined}
-            aria-describedby={isShown("collegeName") ? errorId("collegeName") : undefined}
-            className={`${INPUT_CLASS} ${borderClass(isShown("collegeName"))}`}
-          />
+          <div className="mt-1.5">
+            <CollegeCombobox
+              id="participant-college"
+              inputRef={collegeRef}
+              value={participant.collegeId}
+              onSelect={(college) =>
+                dispatch({
+                  type: "UPDATE_PARTICIPANT",
+                  patch: { collegeId: college.id, collegeName: college.name },
+                })
+              }
+              onBlur={() => markTouched("collegeName")}
+              ariaInvalid={isShown("collegeName")}
+              ariaDescribedBy={isShown("collegeName") ? errorId("collegeName") : undefined}
+            />
+          </div>
           {isShown("collegeName") && (
             <p id={errorId("collegeName")} role="alert" className="mt-1.5 font-body text-xs text-error-rose">
               {errors.collegeName}

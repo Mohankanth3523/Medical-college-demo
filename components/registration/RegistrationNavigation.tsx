@@ -15,12 +15,11 @@ import { isEventsStepValid, isPackageStepValid, isReviewStepValid } from "@/lib/
  * `docs/phase-12-participant-step-notes.md`. Steps not listed here still
  * advance immediately on click, exactly as Phase 11 left them; add an
  * entry only once that step actually has a form + validation to gate on.
- * Phase 14: Details joins this list — team rosters need the same
- * reveal-errors-and-focus-first-invalid-field treatment Participant does.
+ * The registration flow simplification phase removed the old "Details"
+ * step (team rosters) that used to be the second entry here.
  */
 const FORM_ID_BY_STEP: Partial<Record<RegistrationStep, string>> = {
   participant: "participant-form",
-  details: "details-form",
 };
 
 /**

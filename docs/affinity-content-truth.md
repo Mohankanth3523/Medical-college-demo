@@ -12,6 +12,8 @@
 
 The original five documents from the first audit (`content\Herosection\...`, `content\Registration link content\...`, `content\Terms and conditions\...`, `content\Wordings\Affinity 26.docx`) were re-checked against the new brochure; overlaps and genuine conflicts are called out in §14.
 
+**Phase 35 update:** a supplementary PDF and a supplementary DOCX were supplied directly in-session (not from `S:\KIMS\`) specifically for the event/registration pricing restructuring phase. Both focus on the **direct-contact events** — the 12 events with their own separate entry fee and in-charge, handled outside the three registration packages (see the new §5.1). They corroborate most of the brochure's existing figures, but also surface three genuine discrepancies, called out in §14(g)–(i) and reflected in the affected rows of §6/§7/§8 below. Nothing in this update changes §1–§4, §9–§13, or §16.
+
 ---
 
 ## 1. Event identity
@@ -65,17 +67,31 @@ Verified against the brochure's pricing page (page 7 of the PDF) directly, not j
 | Short Film | ₹1,500 per film |
 | Track & Field (athletics events specifically) | ₹150 per individual |
 | Chess — for participants competing **only** in Chess | ₹250 (replaces the general package; resolves the ambiguous "(only chess not applicable)" note found in the original registration docx during the first audit) |
+| Badminton *(added Phase 35 — not previously documented; see §6)* | ₹600 per team |
+| Sollal Vel — preliminary entry | ₹100 per person |
+| Sollal Vel — finalist advancement (6 finalists only) *(corrected Phase 35 — see §7 and §14(i))* | ₹380 |
 | Online events bundle | ₹100 per person — "inclusive of Photography, Reels, Memes, Painting, English Poetry, Tamil Poetry, Pes" *(verbatim from the brochure — "Pes" is cut off/incomplete in the source artwork itself, and "Memes" does not correspond to any named event anywhere else in the brochure; see §14(c))* |
 
 | Esports/gaming entry fee | Price |
 |---|---|
 | E-Football 1v1 | ₹100 per person |
-| E-Football 2v2 | ₹150 per team |
+| E-Football 2v2 | ₹150 — unit disputed: per person in one Phase 35 source, per team in another; not resolved either way — see §14(h) |
 | FIFA | ₹100 per person |
 | PUBG | ₹400 per squad, or ₹100 per person |
 | Free Fire | ₹200 per team (4 players) |
 
-⚠️ **[VERIFY WITH ORGANIZER]** — the brochure never states how the base "Registration" package fee relates to individual sports (other than Chess/Track & Field) or individual onstage/offstage cultural events (other than Short Film). It is not explicit whether entry to e.g. Cricket, Volleyball, Traditional Dance, etc. is included in the ₹480/1,100/1,500 base package, or requires an additional unstated fee.
+⚠️ **[VERIFY WITH ORGANIZER]** — the brochure never states how the base "Registration" package fee relates to individual sports (other than Chess/Track & Field/Badminton) or individual onstage/offstage cultural events (other than Short Film/Sollal Vel). It is not explicit whether entry to e.g. Cricket, Volleyball, Traditional Dance, etc. is included in the ₹480/1,100/1,500 base package, or requires an additional unstated fee.
+
+### 5.1 Registration mode (added Phase 35)
+
+The Phase 35 supplementary documents establish, for the first time, an explicit two-way split of every AFFINITY '26 event:
+
+- **Standard events (44)** — every event not listed below. Covered entirely by whichever of the three packages a participant selects; no separate fee.
+- **Direct-contact events (12)** — have their own separate entry fee, paid and registered directly with the event's in-charge, never through the package flow: **Chess, Badminton, Athletics — Track, Shot Put, Discus Throw, Javelin Throw, Free Fire, PUBG, E-Football, FIFA, Short Film, Sollal Vel.**
+
+This mirrors, and makes explicit, a distinction the fee tables above already implied (Chess/Track & Field/Short Film/the esports titles already had their own stated fees; nothing else did) — Badminton and Sollal Vel are the two events whose direct-contact status and/or fee were not previously fully documented (see the corrections in §6/§7 and §14(h)–(i)). `types/event.ts`'s `registrationMode` field is the frontend's implementation of this split — see `docs/phase-35-event-pricing-restructure-notes.md`.
+
+**Frontend display note (Phase 31, event selection & pricing cleanup):** the tables above remain the full, unedited source of truth. As of Phase 31, the participant-facing frontend (`lib/registration/pricing.ts`) intentionally displays *only* the selected package's own price (₹480 / ₹1,100 / ₹1,500) as the Estimated Total — no per-event fee from either table above, and no event-specific override, is added to or substituted for that number in the UI. This was an explicit instruction in that phase's brief ("Do NOT add individual event fees to the displayed total... Do not display separate prices for... chess... online events... any other individual event"), not a correction of the source. In particular: **the Chess-only ₹250-replaces-the-package rule above is currently not reflected anywhere in the frontend's displayed total** — a Chess-only registrant now sees the flat package price (e.g. ₹480) rather than ₹250. ⚠️ **[VERIFY WITH ORGANIZER]** how that display should reconcile with the actual amount collected at/after registration for a Chess-only entry, before this goes live for real payments.
 
 ## 6. Sports (offline)
 
@@ -96,11 +112,11 @@ General eligibility for all sports (see §9 for full detail): open to all medica
 | Tennis | Max 2 teams/college, singles only, standard scoring, knockout, ITF rules, best-of-3 semis/finals | Racket not provided (bring own); ball provided | Boys: W ₹5,000/R ₹3,000 | Dinesh Nandhan 8667228695 |
 | Carrom | Any number of teams/college, knockout, black & white | Format (4-set points or best-of-3 doubles) decided by entries; online registration mandatory | Boys: W ₹4,000/R ₹3,000. Girls: W ₹4,000/R ₹3,000 | Pawan Kumar 8667763161, Vijayadharshini 9342643364 |
 | Chess | Individual (no teams), knockout, 10-min rapid, FIDE rules | Bring own board/clock; 2 illegal moves = loss; **separate ₹250 fee for Chess-only participants** (see §5) | W ₹4,000/R ₹3,000 | Sudesh 7041119165, Usha 9342967872 |
-| Athletics — Track (100m, 200m, 400m, 4×100m relay) | Boys & girls; max 1 relay team/college + 1 substitute | Max 3 individual events per athlete (2 track+1 field or 1 track+2 field) | Relay: 1st ₹4,000/2nd ₹2,000/3rd ₹1,000. Individual (100/200/400/4×100): 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | Kanishkar 9994449872, Sharan Kumar 8610209288, Hareni AS 9360222917, Vanathy 9042380875 |
-| Javelin Throw | 3 chances/person, no trials | Men 800g / Women 600g | Boys & Girls: 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | same athletics team as above |
-| Discus Throw | 3 chances/person, no trials, 2.5m rim | Men 2kg / Women 1kg | Boys & Girls: 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | same athletics team as above |
-| Shot Put | 3 chances/person, no trials, 2.1m rim | Men 7.26kg / Women 4kg | Boys & Girls: 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | same athletics team as above |
-| Badminton | Team event: singles/doubles/reverse singles, min 2–max 3 players | 21 pts till QF, 30 pts semis/finals; Mavis 350 shuttle; own racquets; **venue TBA**, timing **8 AM** | Boys: W ₹4,000/R ₹2,000. Girls: W ₹3,000/R ₹1,500 | Magizhan Vasigar 9940731010, Sidharth Vedha 9345764788, Janani Sri 6383589616, Ragavarshini 9952313626 |
+| Athletics — Track (100m, 200m, 400m, 4×100m relay) ⚠️ | Boys & girls; max 1 relay team/college + 1 substitute | Max 3 individual events per athlete (2 track+1 field or 1 track+2 field) | Relay: 1st ₹4,000/2nd ₹2,000/3rd ₹1,000. Individual (100/200/400/4×100): 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | Kanishkar 9994449872, Sharan Kumar 8610209288, Hareni AS 9360222917, Vanathy 9042380875 — **contact list disputed, see §14(g)** |
+| Javelin Throw ⚠️ | 3 chances/person, no trials | Men 800g / Women 600g | Boys & Girls: 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | same athletics team as above — **contact list disputed, see §14(g)** |
+| Discus Throw ⚠️ | 3 chances/person, no trials, 2.5m rim | Men 2kg / Women 1kg | Boys & Girls: 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | same athletics team as above — **contact list disputed, see §14(g)** |
+| Shot Put ⚠️ | 3 chances/person, no trials, 2.1m rim | Men 7.26kg / Women 4kg | Boys & Girls: 1st ₹2,000/2nd ₹1,500/3rd ₹1,000 | same athletics team as above — **contact list disputed, see §14(g)** |
+| Badminton | Team event: singles/doubles/reverse singles, min 2–max 3 players | 21 pts till QF, 30 pts semis/finals; Mavis 350 shuttle; own racquets; **venue TBA**, timing **8 AM**; **₹600 per team direct-contact fee** *(added Phase 35 — see §5)* | Boys: W ₹4,000/R ₹2,000. Girls: W ₹3,000/R ₹1,500 | Magizhan Vasigar 9940731010, Sidharth Vedha 9345764788, Janani Sri 6383589616, Ragavarshini 9952313626 |
 
 Athletics-wide notes: a college may enter max 2 persons per individual event; only 1 relay team per college; separate ₹150 fee for exclusively Track & Field participants (§5).
 
@@ -112,7 +128,7 @@ General rules for all culturals: registration mandatory, only MBBS students (bat
 
 | Event / Day | Key rules | Prize | Contact |
 |---|---|---|---|
-| Sollal Vel *(Day 1; Tamil-language debate/oratory event — resolves the "solal vel" spelling ambiguity from the original registration docx)* | Any number of participants per college; prelim online round (₹100 to enter), 6 finalists pay ₹350 more to advance; avoid controversial topics; 5–7 min per speaker; judge's decision final | 1st ₹5,000 / 2nd ₹2,500 | Rani +91 96770 23216, Priyanka +91 63796 03180 |
+| Sollal Vel ⚠️ *(Day 1; Tamil-language debate/oratory event — resolves the "solal vel" spelling ambiguity from the original registration docx)* | Any number of participants per college; prelim online round (₹100 to enter), 6 finalists pay **₹380** more to advance *(corrected Phase 35 from a previously recorded ₹350 — see §14(i))*; avoid controversial topics; 5–7 min per speaker; judge's decision final | 1st ₹5,000 / 2nd ₹2,500 | Rani +91 96770 23216, Priyanka +91 63796 03180 |
 | Connexion (Day 1) | 2 teams/college, max 2 members/team; offline prelims Day 1, final onstage same day | 1st ₹4,000 / 2nd ₹2,000 | Shifa +91 97905 15831, Sasithra +91 93614 11305 |
 | Short Film (Day 1) | Multiple entries/college; MBBS-only cast/crew; 10–13 min; ₹1,500/film fee (see §5); entries via Google Drive link on WhatsApp by 26/09/2026; only top 5 selected for stage screening | 1st ₹7,500 / 2nd ₹5,000 | Arulmozhiselvan +91 94892 37220, Harshada +91 93600 39680 |
 | Traditional Dance (Day 1) | 1 entry/college (solo or group, up to 12); classical/traditional only; 5 min max; track submitted by 26/09/2026 | 1st ₹8,000 / 2nd ₹4,000 | Ragavarshini +91 99523 13626, Ezhil +91 89392 70332 |
@@ -163,7 +179,7 @@ General rules for all culturals: registration mandatory, only MBBS students (bat
 
 | Event | Format | Prize | Contact |
 |---|---|---|---|
-| E-Football | 1v1 & 2v2, knockout, 2-leg matches, 8-min matches | 1v1: W ₹1,000/R ₹500. 2v2: W ₹2,000/R ₹1,000 | Ram Balaji 8838755590, Nithish Kumar 8825476263 |
+| E-Football ⚠️ | 1v1 & 2v2, knockout, 2-leg matches, 8-min matches | 1v1: W ₹1,000/R ₹500. 2v2: W ₹2,000/R ₹1,000 | Ram Balaji 8838755590, Nithish Kumar 8825476263 — **2v2 entry-fee unit disputed, see §14(h)** |
 | FIFA | 1v1 knockout, PvP, penalties on draw | Winner ₹2,000 / Runner ₹1,000 | Dharani Vendhan 8438050809, Manjunatha 9345760744 |
 | PUBG | Squad (4 main + 1 sub); 3 matches across 3 maps; points-based; min in-game level 25 | Winner ₹2,000 / Runner ₹1,000 | Kanish Krishnakanth 8148562050, Thirumaran 7904896669 |
 | Free Fire | Team of 4; Battle Royale; min ID level 40; Android/iOS only | Winner ₹2,000 / Runner ₹1,000 | Chandrappradosh 8428788117, Nirai Muhil 9344633005 |
@@ -252,6 +268,12 @@ e) **Resolved (no longer a conflict):** the original registration docx's confusi
 
 f) **Not a conflict, but a completeness gap:** the original registration docx's "Online (culturals only)" list (9 items) does not mention the esports/gaming category (E-Football, FIFA, PUBG, Free Fire) that the new brochure documents in full, with its own fee structure. The brochure is the more complete and authoritative source for the Online events category overall.
 
+g) **(Added Phase 35) Track & Field group contact attribution.** The brochure and this document's own prior data agree that all four Track & Field records (Athletics — Track, Javelin Throw, Discus Throw, Shot Put) share the same 4 contacts: Kanishkar, Sharan Kumar, Hareni AS, Vanathy. One of the two Phase 35 supplementary documents instead narrows this to 2 contacts per event — Hareni AS for Track and Shot Put, Sharan Kumar for Discus and Javelin — omitting Kanishkar and Vanathy entirely from all four. The fuller, brochure-corroborated 4-contact list is what's kept as the primary record (§6), but the narrower attribution is not discarded. **[VERIFY WITH ORGANIZER]**
+
+h) **(Added Phase 35) E-Football 2v2 entry-fee unit.** The brochure and this document's own prior data state the 2v2 fee as ₹150 per team. One of the two Phase 35 supplementary documents instead states ₹150 per person for the same 2v2 entry. Both readings are preserved in §5/§8 rather than one being silently chosen. **[VERIFY WITH ORGANIZER]**
+
+i) **(Added Phase 35) Sollal Vel finalist-advancement fee.** This document previously recorded the fee for the 6 finalists to advance as ₹350. Both Phase 35 supplementary documents state ₹380 for the same fee. This is a correction against this document's own prior figure rather than a disagreement between the two new sources (which agree with each other) — corrected to ₹380 in §5/§7, with the prior ₹350 figure recorded here for traceability. **[VERIFY WITH ORGANIZER]**
+
 ## 15. Information requiring organizer verification
 
 - Exact calendar dates for Day‑1 and Day‑2 of the festival (only Day‑3 = 3rd October is stated).
@@ -262,6 +284,31 @@ f) **Not a conflict, but a completeness gap:** the original registration docx's 
 - The online-bundle scope ambiguity ("Memes"/"Pes") in §14(c), and whether Movie Scene Recreation / AI Poster / Movie Poster Recreation fall under that ₹100 bundle or are priced separately.
 - The fee amount for a replacement Affinity tag ("a separate amount will be charged" — no figure given).
 - Whether entry to sports/culturals beyond the ones with a named fee (Chess, Track & Field, Short Film) is covered by the base ₹480/1,100/1,500 registration package, or requires a further per-event fee not documented anywhere.
+- (Added Phase 31.) How a Chess-only registrant's real payment should reconcile with the frontend's displayed total, now that the UI intentionally shows only the flat package price rather than the brochure's ₹250 Chess-only override — see the "Frontend display note" under §5.
 - Garbled contact number for Parody's second contact ("Sangavi S" — digits render inconsistently across the source as "7604...9575...65"; needs a clean number from the organizer).
 - Whether the credited "Dhruvaas Tech Team" (Abiragh, Harinee B, Kaviya B, Madhuri, Perarasan, Vaibhav) is meant for public-facing site credits or was internal-only brochure signage.
 - Content of the 267 MB promo video (`content/Promo video/lv_0_20260707191624.mp4`) has not been reviewed frame-by-frame; it may contain additional on-screen facts (dates, venue) not yet captured here.
+- (Added Phase 35.) The Track & Field group's contact attribution conflict in §14(g).
+- (Added Phase 35.) The E-Football 2v2 entry-fee unit conflict in §14(h).
+- (Added Phase 35.) The Sollal Vel finalist-advancement fee correction in §14(i) — confirm ₹380 is correct before it's treated as final.
+
+## 16. Participating colleges
+
+Source: a separate 86-entry official college list document (supplied during
+the college-searchable-dropdown phase; not part of the original brochure/
+registration-docx set §1–15 above draw from). Transcribed verbatim,
+programmatically (each source paragraph copied character-for-character,
+not manually retyped), into `data/colleges.ts` — the sole source for the
+registration wizard's College Name field (`CollegeCombobox`). Count and
+1–86 sequence integrity are enforced at load time by that file itself (a
+thrown error, not just a comment, if either ever drifts).
+
+Three names look similar at a glance but are three separate entries in
+the source, kept as three separate entries here: "Karpaga Vinayaga
+Institute of Medical Sciences" (this project's own host institution —
+note the "Vinayaga" spelling, distinct from the two below), "Vinayaka
+Missions Kirupananda Variyar Medical College & Hospitals", and "Vinayaka
+Missions Medical College, Karaikal". Likewise "Dhanalakshmi Srinivasan
+Institute of Medical Sciences and Hospital, Perambalur" and "Dhanalakshmi
+Srinivasan Medical College & Hospital, Perambalur" are two separate
+Perambalur institutions in the source, both kept.

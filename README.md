@@ -1,13 +1,17 @@
 # AFFINITY '26 — Frontend
 
-Phase 29 deliverable: official brand logo integration (College, event
-emblem, Dhruvaas batch, and digital partners MKZORA/Garudan Nexus) across
-the Hero, a new Digital Partners section, Footer, Registration page, and
-the Registration Pass, for AFFINITY '26 (11th
-Edition, Karpaga Vinayaga Institute of Medical Sciences and Research
-Centre, Dhruvaas batch, Arabian Nights theme). **Frontend only** — see
-`docs/frontend-audit.md` and `docs/affinity-content-truth.md` (from
-Phase 01) for full scope and source-of-truth rules.
+Phase 36 deliverable: the registration flow simplification — this is a
+COLLEGE MEDICAL FEST registration website, so the wizard now models ONE
+STUDENT = ONE REGISTRATION. The old "Assemble Your Company" team-roster
+step (team name, captain, member-by-member roster) is gone entirely; a
+participant can still select a team/duo/squad event, but never has to
+name who else is on it. The wizard is five steps — Participant, Events,
+Package, Review, Payment — plus the separate `/success` "Registration
+Complete" page, for AFFINITY '26 (11th Edition, Karpaga Vinayaga
+Institute of Medical Sciences and Research Centre, Dhruvaas batch,
+Arabian Nights theme). **Frontend only** — see `docs/frontend-audit.md`
+and `docs/affinity-content-truth.md` (from Phase 01) for full scope and
+source-of-truth rules.
 
 ## Status
 
@@ -526,6 +530,202 @@ Phase 01) for full scope and source-of-truth rules.
   `docs/phase-29-brand-logo-integration-notes.md` for the full reasoning,
   including the "never crop" vs. legibility trade-off this phase accepts
   and documents rather than silently resolving.
+- ✅ **Phase 30 — College searchable dropdown**: the Participant step's
+  free-text "College Name" field is now `CollegeCombobox`
+  (`components/registration/CollegeCombobox.tsx`), a WAI-ARIA
+  combobox-with-listbox constrained to the 86 official colleges in the
+  new `data/colleges.ts` — arrow keys/Enter/Escape/Tab all work, an
+  `aria-live` region announces the live result count, and typing never
+  commits a value on its own; only choosing an option does. Search
+  (`lib/registration/collegeSearch.ts`) is a pure, local, case-insensitive,
+  whitespace-tolerant substring match — no external API, verified by
+  actually running it against every example the brief names by hand
+  (`madras`, `coimbatore`, `psg`, `vinayaka`). `Participant` gained a
+  `collegeId` field alongside the existing `collegeName` (no second state
+  system — the existing reducer/localStorage/`ReviewStep`/
+  `RegistrationPass` all kept working unchanged); validation now requires
+  a real selection (`"Please select your college."`) instead of a
+  length-checked string. A `data/colleges.ts` integrity block throws at
+  load time if the count drifts from 86 or an id/sourceOrder repeats —
+  confirmed by actually executing the file, not just type-checking it.
+  See `docs/phase-30-college-dropdown-notes.md` for the full reasoning,
+  including one false start this phase records on purpose: the request
+  initially claimed a college list was already attached when it wasn't,
+  and rather than fabricate 86 college names, the session checked every
+  reachable file and asked again instead.
+- ✅ **Phase 31 — Event selection & package pricing cleanup**: `EventCard`
+  (shared by the public Events Explorer and the registration wizard) now
+  shows only category, name, mode, individual/team type, an optional
+  short description, a subtle "Limited Slots" label (never a numeric
+  cap), and a **Contact** block (`event.contact`, or "To be announced")
+  — every fee/price/payment-status line and the data-verification badge
+  are gone from the card. The registration wizard's Events step
+  (`EventsStep.tsx`) replaced its Sports/Culturals/Online category tabs
+  with **All Events / Offline / Online** mode tabs — "All Events" shows
+  both groups as two visually separated, independently-headed sections;
+  search still filters within whichever tab is active. `lib/registration/
+  pricing.ts` was rewritten: the displayed Estimated Total is now always
+  exactly the selected package's own price (₹480 / ₹1,100 / ₹1,500) —
+  no per-event fee is ever added, and the old Chess-only-₹250-replaces-
+  the-package override no longer applies to the display (the official
+  rule is still documented in `docs/affinity-content-truth.md` §5/§15,
+  now with a permanent [VERIFY WITH ORGANIZER] flag on how that
+  reconciles with real payment collection). No event data was deleted —
+  `AffinityEvent.fee` and every per-event fee figure in `data/pricing.ts`
+  are untouched, just no longer read by any participant-facing
+  component. See `docs/phase-31-event-pricing-cleanup-notes.md` for the
+  full reasoning, including a scope decision (the public `/events`
+  Events Explorer keeps its old category tabs — only the registration
+  wizard's Events step got the new mode tabs).
+- ✅ **Phase 32 — Gallery section**: a new landing-page section
+  (`components/sections/GallerySection.tsx`, mounted between
+  `EventsTeaser` and `DigitalPartnersSection`) showing four photographs
+  supplied directly in this session's request. `data/gallery.ts`
+  centralizes the asset list (`{id, src, alt, orientation}`, following
+  the `data/branding.ts` precedent) — no path or caption is hard-coded
+  inside a component. `components/gallery/Gallery.tsx` renders a
+  responsive CSS multi-column masonry (`columns-1 sm:columns-2
+  lg:columns-4`) with a click-to-enlarge lightbox that reuses
+  `EventDetailsModal`'s existing focus-trap/Escape/scroll-lock pattern,
+  plus `ArrowLeft`/`ArrowRight` photo navigation. Alt text is plain and
+  descriptive, never a claim about which AFFINITY edition or date a
+  photo is from — nothing in the supplied files states that. An earlier
+  version of this layout forced every thumbnail into a fixed `4:3`/`3:4`
+  box with `object-cover`, which cropped people out of frame on two of
+  the four photos (reported directly by the user); the masonry version
+  fixes that by sizing every thumbnail from its own true aspect ratio,
+  so nothing is ever cropped, while still avoiding the "repetitive
+  rounded cards" look the brief warns against. See
+  `docs/phase-32-gallery-notes.md` for the full reasoning, including the
+  placement decision (not specified in the request, so recorded rather
+  than assumed as settled) and the crop-fix addendum. A second report on
+  the same feature — the lightbox popup occasionally not fitting the
+  screen — was a separate bug in the enlarged-photo view: it capped the
+  photo at a fixed `70vh` regardless of how much room the header and
+  caption already used, so on a short viewport the total could exceed
+  the screen and push part of the dialog off it. Fixed by making the
+  panel, header, caption, and photo cooperate through flexbox (the panel
+  capped at the true available viewport height, header/caption pinned to
+  their natural size, the photo the one element allowed to shrink to
+  fit) instead of each guessing a viewport fraction on its own — see the
+  notes file's second addendum.
+
+- ✅ **Phase 33 — Logo refresh + "Powered by MKZORA"**: all five brand-mark
+  files under `public/assets/logo/` (MKZORA, Garudan Nexus, the AFFINITY
+  event emblem, the Dhruvaas crest, the college logo) were replaced with
+  newer versions supplied directly in this session's request — matched to
+  their identity by aspect ratio, re-encoded with `sharp` (palette PNG,
+  resized only where a source exceeded 1400px, never upscaled), and,
+  unlike the Phase 29 originals, genuinely alpha-transparent (verified by
+  pixel sampling). `mkzora-logo.jpg` was replaced by `mkzora-logo.png`
+  since `.jpg` can't hold transparency. Every logo instance across `Hero`,
+  `RegistrationLayout`, the homepage Digital Partners section, and the
+  footer's digital-partners row grew by roughly one size step, keeping the
+  AFFINITY event emblem the largest mark everywhere it appears — the one
+  deliberate exception is `RegistrationPass`, left at its existing size
+  and text-only digital-partner credit, since that page's own Phase 29
+  rationale (a printable, screenshot-able pass is the one surface where a
+  bigger or logo'd partner credit reads as the partner dominating a
+  participant's own document) still holds. A new, separate "Website
+  Powered By" MKZORA credit was added to `Footer`'s closing colophon
+  (`siteBranding.poweredBy`, reusing MKZORA's identity from a single
+  shared `mkzoraMark` object rather than duplicating it) — since `Footer`
+  mounts once in the root layout and renders on every route, this one
+  addition is what makes the credit sitewide. See
+  `docs/phase-33-logo-refresh-notes.md` for the full file-by-file size
+  table, the upload-to-identity matching, and the still-open
+  browser-verification gaps.
+
+- ✅ **Phase 34 — Arabian Nights atmosphere pass**: the Story, Theme,
+  Cause, and Events-teaser landing sections were reported as "feels long
+  text only." A new design-system component, `GeometricBand`
+  (`components/design-system/GeometricBand.tsx`), fills a gap in the
+  brief's own motif list — "Arabian geometric patterns" was the one named
+  motif that had never actually been built, unlike crescents, stars,
+  lanterns, and palace silhouettes, which all already existed. It's a
+  thin tiled band of the classic eight-point star (rub el hizb), drawn as
+  flat SVG line art via a native `<pattern>`, colored entirely through the
+  caller's own `text-antique-gold/…` className, the same convention every
+  other motif component here already follows. It's now used to open/close
+  Story, Theme (which also gets two flanking `Lantern`s around its
+  "Arabian Nights" heading and its first-ever `StarField`), Cause (a
+  single closing band, deliberately the lightest touch — that section's
+  restraint is a documented Phase 08 choice, not an oversight), and
+  EventsTeaser (previously the only landing section with *no* atmosphere
+  elements at all — it now also gets a `StarField` and `PalaceSilhouette`
+  matching Theme's treatment, plus one small flat-line glyph per stat
+  card — crossed blades for Sports, a performance mask for Culturals, a
+  plain screen for Online — so the three stat tiles read as three
+  distinct categories, not three identical number boxes). No photography
+  was added: this project has no licensed Arabian-Nights photography
+  source, and the brief's own motif list is explicitly vector/
+  illustrative, not photographic — see
+  `docs/phase-34-theme-atmosphere-notes.md` for the full reasoning,
+  including why the Gallery's real event photos weren't reused here.
+
+- ✅ **Phase 35 — Event & registration pricing restructuring**: a new
+  required `registrationMode: "standard" | "direct-contact"` field on
+  `AffinityEvent` (`types/event.ts`) is now the single source of truth
+  for which of the 56 events are covered by the three registration
+  packages (44, `"standard"`) versus which have their own separate entry
+  fee and in-charge, handled outside the online package flow entirely
+  (12, `"direct-contact"`: Chess, Badminton, Athletics — Track, Shot
+  Put, Discus Throw, Javelin Throw, Free Fire, PUBG, E-Football, FIFA,
+  Short Film, Sollal Vel). `EventCard`, `EventDetailsModal`,
+  `EventsStep` (the wizard's "Choose Your Tales"), and `EventsExplorer`
+  (the public `/events` page) were all updated so a direct-contact event
+  stays fully visible everywhere but can never be toggled into a package
+  selection — its card renders a "Contact In-Charge" trigger instead of
+  "Select This Event," opening the same `EventDetailsModal` (now showing
+  "Separate entry event." and the in-charge's contact instead of a
+  "Register for This Event" button that would otherwise link into the
+  package flow). Both event-browsing pages now visually split into
+  "Standard AFFINITY Events" and "Direct-Contact Events" sections rather
+  than one flat grid. Three data corrections/discrepancies were
+  surfaced rather than silently resolved: Badminton's fee (previously
+  unrecorded, now ₹600/team), the Track & Field group's contact
+  attribution (PDF/prior-data vs. a narrower DOCX list —
+  `verificationStatus: "conflicting"`), E-Football's 2v2 fee unit
+  (per-person vs. per-team, stated differently across sources —
+  `"conflicting"`), and Sollal Vel's finalist fee (this app's own prior
+  data said ₹350; the newly supplied sources say ₹380 — corrected, and
+  flagged). `lib/registration/pricing.ts`'s Phase-31 behavior (the total
+  is always exactly the selected package's own amount) needed no change
+  — verified it already made every direct-contact fee structurally
+  incapable of reaching the displayed total. See
+  `docs/phase-35-event-pricing-restructure-notes.md` for the full
+  reasoning, every corrected value, and the discrepancies left open for
+  organizer confirmation.
+
+- ✅ **Phase 36 — Registration flow simplification (individual student
+  registration)**: the wizard's old "Details" step — which collected a
+  team name, a captain, and a member-by-member roster for every
+  team/duo/squad event a participant selected — has been removed
+  entirely, along with its backing data model
+  (`TeamMember`/`teamMembers`/`teamName`/`captainId`/`teamDetails` are
+  all gone from `types/registration.ts`, `lib/registration/state.ts`, and
+  `lib/registration/validation.ts`). `EventSelection` is now just `{
+  eventId: string }`. This is a single-participant registration record —
+  Registration → Participant → Selected Events → Package, never
+  Registration → Team → Team Members — and a participant selecting a
+  team event is treated exactly like selecting an individual one; the
+  organizer manages actual team composition separately. The wizard is
+  five steps now (`REGISTRATION_STEPS`: participant, events, package,
+  review, confirm — renumbered 01–05), with the last relabeled "Payment"
+  (it already held the frontend demo-payment UI). Every fantasy/travel
+  term named in the phase brief — "The Traveller," "Assemble Your
+  Company," "Choose Your Tales," "The Final Seal," "Review Your Tale,"
+  "The Royal Registry," "Your Registry," "Laws of the Realm" (the Rules
+  page title) — was replaced with plain college-event wording throughout
+  the registration wizard and the Rules page title; the Arabian Nights
+  *visual* system (palette, ornamental frames, typography, the public
+  marketing pages' own design copy like the Hero tagline) was left
+  untouched, per the brief's own "keep the visual theme, change the
+  registration UX wording" instruction. `lib/registration/pricing.ts`
+  needed no change — it already computed the total from the selected
+  package alone, independent of any event's team/individual type. See
+  `docs/phase-36-registration-flow-simplification-notes.md` for the full
+  before/after and every renamed string.
 
 ## ⚠️ Verification could not be fully automated in this session
 
@@ -576,19 +776,40 @@ dependencies), re-run at the end of every phase including Phase 03:
   file list in their respective phases (previously only checked
   transitively via their importers). Phase 28 added `lib/intro/
   introStorage.ts`; Phase 29 added `data/branding.ts` (the `siteBranding`
-  registry) — **26 files as of Phase 29** in this strict pass, zero
-  errors.
-- Every `.ts`/`.tsx` file in the project — **83 files as of Phase 29**
-  (79 unchanged through Phase 28; Phase 29 added `data/branding.ts`,
-  `components/design-system/BrandLogo.tsx`,
-  `components/branding/DigitalPartners.tsx`, and
-  `components/sections/DigitalPartnersSection.tsx`) — parses as
+  registry); Phase 30 added `data/colleges.ts` and `lib/registration/
+  collegeSearch.ts`; Phase 31 rewrote `lib/registration/pricing.ts` in
+  place (no new pure-logic file); Phase 32 added `data/gallery.ts`; Phase
+  33 edited `data/branding.ts` in place (no new pure-logic file); Phase
+  34 touched no pure-logic file (`GeometricBand.tsx` and the four edited
+  sections all use JSX); Phase 35 added a new type (`RegistrationMode`)
+  to `types/event.ts` and new field values to all three `data/events/
+  *.ts` files, all already on this list, and touched no new pure-logic
+  file — **29 files as of Phase 36** (unchanged count since Phase 32 —
+  Phase 36 removed no pure-logic file from this list; `DetailsStep.tsx`,
+  the one file it deleted, was a `.tsx` component, never on this list)
+  in this strict pass, zero errors. `data/
+  colleges.ts` and `collegeSearch.ts` were additionally *executed* (not
+  just type-checked) with `tsx`, since their integrity `throw`s and
+  search behavior are runtime checks a type-checker alone can't confirm
+  — see docs/phase-30-college-dropdown-notes.md. Phase 35 additionally
+  executed `data/events/index.ts`'s `allEvents` with `tsx` to confirm at
+  runtime the exact 44/12 standard/direct-contact split and the
+  corrected fee values — see docs/phase-35-event-pricing-restructure-notes.md.
+  Phase 36 additionally ran the whole simplified wizard flow (participant
+  → select a team-type event → package → review) through `tsx`, at
+  runtime, to confirm the reducer never touches a `teamDetails` key and
+  every `selectedEvents` entry is exactly `{ eventId }` — see
+  docs/phase-36-registration-flow-simplification-notes.md.
+- Every `.ts`/`.tsx` file in the project — **89 files as of Phase 36**
+  (90 through Phase 35; Phase 36 deleted exactly one file,
+  `components/registration/DetailsStep.tsx`, and added none) — parses as
   syntactically valid TypeScript/JSX via `esbuild`.
-- Every `@/...` import in the codebase (**180 as of Phase 29** — 169
-  unchanged through Phase 28; Phase 29 added eleven, across the four new
-  files above and the four files edited to use them: `Hero.tsx`,
-  `Footer.tsx`, `RegistrationLayout.tsx`, `RegistrationPass.tsx`)
-  resolves to a real file on disk (checked by script, not by eye).
+- Every `@/...` import in the codebase (**174 as of Phase 36**, down from
+  184 through Phase 35 — Phase 36 deleted `DetailsStep.tsx`, which alone
+  carried nine `@/...` imports, and `app/register/page.tsx` lost its
+  tenth, the now-removed `import { DetailsStep }` line; no new `@/...`
+  import was added this phase) resolves to a real file on disk (checked
+  by script, not by eye).
 - Phase 09 brought the full `data/events/*` layer (all ~56 event
   records) into the strict `tsc --noEmit` pass for the first time,
   alongside `lib/events/formatFee.ts`; Phase 10 added

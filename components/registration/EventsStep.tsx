@@ -1,13 +1,13 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { useRegistration } from "@/lib/registration/context";
 import { allEvents, getEventById } from "@/data/events";
-import { formatEventFee } from "@/lib/events/formatFee";
-import { EVENT_GROUPS, EVENT_GROUP_LABEL, EVENT_GROUP_CATEGORIES, type EventGroup } from "@/lib/events/eventGroups";
+import { MODE_LABEL } from "@/lib/events/eventLabels";
 import { EventCard } from "@/components/events/EventCard";
+import { EventDetailsModal } from "@/components/events/EventDetailsModal";
 import { OrnamentalFrame } from "@/components/design-system";
-import type { AffinityEvent } from "@/types/event";
+import type { AffinityEvent, EventMode } from "@/types/event";
 
 /** Hand-drawn "×" glyph for the remove-event control — matches the project's no-icon-library convention (see EventBadge's AlertGlyph). */
 function RemoveGlyph() {
@@ -20,7 +20,32 @@ function RemoveGlyph() {
 }
 
 /**
- * Step 02 — "Choose Your Tales". Multi-select event picker, reading
+ * Phase 31's mode-based tab set — "All Events / Offline / Online" —
+ * replacing this step's old three-way Sports/Culturals/Online category
+ * filter (`lib/events/eventGroups.ts`, still used unchanged by the public
+ * Events Explorer at `/events`, which this phase's brief doesn't ask to
+ * touch). Local to this file rather than promoted into a shared module,
+ * the same way `EVENT_GROUPS` itself started life local to
+ * `EventsExplorer` before a second consumer justified extracting it — no
+ * second consumer for this particular grouping exists yet.
+ */
+type ModeTab = "all" | EventMode;
+
+const MODE_TABS: ModeTab[] = ["all", "offline", "online"];
+
+const MODE_TAB_LABEL: Record<ModeTab, string> = {
+  all: "All Events",
+  offline: "Offline",
+  online: "Online",
+};
+
+const SECTION_HEADING: Record<EventMode, string> = {
+  offline: "Offline / On-Campus Events",
+  online: "Online Events",
+};
+
+/**
+ * Step 02 — Select Events. Multi-select event picker, reading
  * `allEvents` straight from the centralized data layer (this step is
  * already inside a client-only route subtree — `app/register/layout.tsx`
  * — so, unlike the public Events Explorer's Server→Client split, there's
@@ -29,21 +54,54 @@ function RemoveGlyph() {
  *
  * Reuses `EventCard` (its Phase 13 `selected`/`onToggleSelect` mode, not
  * `onViewDetails` — this step's own brief doesn't ask for a details
- * drawer) and the same three-way category grouping the public Events
- * Explorer uses (`lib/events/eventGroups.ts`, extracted this phase so
- * both consumers share one definition). "Do not invent restrictions":
- * every event in `data/events/*` is selectable here — there is no
- * eligibility-matching logic cross-checking a participant's year of
- * study against an event's `eligibility` text, because no source
- * document defines that as a structured, enforceable rule (see
- * `docs/phase-13-events-step-notes.md`).
+ * drawer). "Do not invent restrictions": every event in `data/events/*`
+ * is selectable here — there is no eligibility-matching logic
+ * cross-checking a participant's year of study against an event's
+ * `eligibility` text, because no source document defines that as a
+ * structured, enforceable rule (see `docs/phase-13-events-step-notes.md`).
+ *
+ * Phase 31 replaces the category filter with a mode filter — every
+ * AFFINITY '26 event's `mode` field is already an unambiguous "offline" or
+ * "online" (data/events/sports.ts and data/events/cultural.ts are all
+ * "offline"; data/events/online.ts is all "online" — no event's
+ * classification was ambiguous or needed to be inferred, so nothing here
+ * was reclassified). "All Events" renders both groups as two visually
+ * separated sections rather than one flat grid, per the brief's own
+ * "visually separated" instruction; "Offline"/"Online" render only their
+ * one matching section. Search keeps filtering within whichever tab is
+ * active, exactly as it did before.
+ *
+ * The event/registration pricing restructuring phase layers a second,
+ * higher-priority split on top: every event is first divided into
+ * "Standard AFFINITY Events" (`registrationMode === "standard"` —
+ * covered by whichever of the 3 packages the participant picks in Step
+ * 04, selectable here exactly as before) and "Direct-Contact Events"
+ * (`registrationMode === "direct-contact"` — Chess, Badminton, the
+ * Track & Field group, Free Fire, PUBG, E-Football, FIFA, Short Film,
+ * Sollal Vel). The mode tabs and search still narrow *within* each of
+ * those two sections, unchanged. A direct-contact event can never be
+ * toggled into `state.selectedEvents` here — its card renders a
+ * "Contact In-Charge" trigger (`EventCard`'s own doc comment) that opens
+ * the same `EventDetailsModal` `EventsExplorer` uses, instead of the
+ * select/selected toggle every standard card still gets. This keeps
+ * every direct-contact event visible on this step (per the phase brief's
+ * explicit "must remain visible, not hidden") without it ever being able
+ * to affect the package total computed in `lib/registration/pricing.ts`.
  */
+const STANDARD_HEADING = "Standard AFFINITY Events";
+const STANDARD_SUBTEXT = "Covered by your selected registration package.";
+const DIRECT_CONTACT_HEADING = "Direct-Contact Events";
+const DIRECT_CONTACT_SUBTEXT =
+  "These events have separate entry procedures. Contact the respective in-charge for participation details.";
+
 export function EventsStep() {
   const { state, dispatch } = useRegistration();
-  const [group, setGroup] = useState<EventGroup>("all");
+  const [modeTab, setModeTab] = useState<ModeTab>("all");
   const [query, setQuery] = useState("");
+  const [openEventId, setOpenEventId] = useState<string | null>(null);
   const searchId = useId();
   const resultsId = useId();
+  const modalTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const selectedIds = useMemo(
     () => new Set(state.selectedEvents.map((selection) => selection.eventId)),
@@ -59,15 +117,37 @@ export function EventsStep() {
   );
 
   const filtered = useMemo(() => {
-    const categories = group === "all" ? null : EVENT_GROUP_CATEGORIES[group];
     const q = query.trim().toLowerCase();
     return allEvents.filter((event) => {
-      if (categories && !categories.includes(event.category)) return false;
+      if (modeTab !== "all" && event.mode !== modeTab) return false;
       if (!q) return true;
       const haystack = event.description ? `${event.name} ${event.description}` : event.name;
       return haystack.toLowerCase().includes(q);
     });
-  }, [group, query]);
+  }, [modeTab, query]);
+
+  // The event/registration pricing restructuring phase's primary split —
+  // computed from `filtered`, so the mode tabs and search still narrow
+  // within each group exactly as before.
+  const standardFiltered = useMemo(
+    () => filtered.filter((event) => event.registrationMode === "standard"),
+    [filtered],
+  );
+  const directContactFiltered = useMemo(
+    () => filtered.filter((event) => event.registrationMode === "direct-contact"),
+    [filtered],
+  );
+
+  const offlineEvents = useMemo(
+    () => standardFiltered.filter((event) => event.mode === "offline"),
+    [standardFiltered],
+  );
+  const onlineEvents = useMemo(
+    () => standardFiltered.filter((event) => event.mode === "online"),
+    [standardFiltered],
+  );
+
+  const openEvent = openEventId ? (getEventById(openEventId) ?? null) : null;
 
   function toggleEvent(event: AffinityEvent) {
     dispatch(
@@ -77,23 +157,53 @@ export function EventsStep() {
     );
   }
 
+  function handleViewDetails(event: AffinityEvent, trigger: HTMLButtonElement) {
+    modalTriggerRef.current = trigger;
+    setOpenEventId(event.id);
+  }
+
+  function renderStandardGrid(events: AffinityEvent[]) {
+    return (
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {events.map((event) => (
+          <EventCard
+            key={event.id}
+            event={event}
+            selected={selectedIds.has(event.id)}
+            onToggleSelect={toggleEvent}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  function renderDirectContactGrid(events: AffinityEvent[]) {
+    return (
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {events.map((event) => (
+          <EventCard key={event.id} event={event} onViewDetails={handleViewDetails} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex flex-col gap-1">
-        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Choose Your Tales</h3>
+        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Select Events</h3>
         <p className="font-accent text-base italic text-warm-gold">
-          Sports, culturals, and courts beyond — enter as many as your story allows.
+          Choose the events you wish to participate in.
         </p>
       </div>
 
       <OrnamentalFrame padding="sm" className="mt-6">
         <h4 className="font-body text-xs font-medium uppercase tracking-wide text-desert-sand">
-          Your Chosen Tales ({selectedEvents.length})
+          Selected Events ({selectedEvents.length})
         </h4>
 
         {selectedEvents.length === 0 ? (
           <p className="mt-2 font-body text-sm text-desert-sand/80">
-            No tales chosen yet — select from the courts below.
+            No events selected yet — choose from the events below.
           </p>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
@@ -104,7 +214,7 @@ export function EventsStep() {
               >
                 <div className="flex flex-col">
                   <span className="font-body text-sm font-medium text-ivory">{event.name}</span>
-                  <span className="font-body text-xs text-desert-sand">{formatEventFee(event.fee)}</span>
+                  <span className="font-body text-xs text-desert-sand">{MODE_LABEL[event.mode]}</span>
                 </div>
                 <button
                   type="button"
@@ -122,15 +232,15 @@ export function EventsStep() {
       </OrnamentalFrame>
 
       <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div role="group" aria-label="Filter events by category" className="flex flex-wrap gap-2">
-          {EVENT_GROUPS.map((g) => {
-            const active = g === group;
+        <div role="group" aria-label="Filter events by mode" className="flex flex-wrap gap-2">
+          {MODE_TABS.map((tab) => {
+            const active = tab === modeTab;
             return (
               <button
-                key={g}
+                key={tab}
                 type="button"
                 aria-pressed={active}
-                onClick={() => setGroup(g)}
+                onClick={() => setModeTab(tab)}
                 className={[
                   "min-h-11 border px-4 py-2 font-body text-sm font-medium uppercase tracking-wide transition-colors duration-base",
                   active
@@ -138,7 +248,7 @@ export function EventsStep() {
                     : "border-antique-gold/40 text-desert-sand hover:border-antique-gold/70 hover:text-ivory",
                 ].join(" ")}
               >
-                {EVENT_GROUP_LABEL[g]}
+                {MODE_TAB_LABEL[tab]}
               </button>
             );
           })}
@@ -164,23 +274,58 @@ export function EventsStep() {
         {filtered.length} {filtered.length === 1 ? "event" : "events"} found
       </p>
 
-      {filtered.length > 0 ? (
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              selected={selectedIds.has(event.id)}
-              onToggleSelect={toggleEvent}
-            />
-          ))}
-        </div>
-      ) : (
+      {filtered.length === 0 ? (
         <div className="mt-12 flex flex-col items-center gap-2 border border-antique-gold/20 px-6 py-16 text-center">
-          <p className="font-accent text-lg italic text-warm-gold">No arenas match your search.</p>
+          <p className="font-accent text-lg italic text-warm-gold">No events match your search.</p>
           <p className="font-body text-sm text-desert-sand">Try a different name, or clear the filters above.</p>
         </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-12">
+          {standardFiltered.length > 0 && (
+            <div>
+              <h4 className="font-display text-lg font-semibold tracking-wide text-ivory">{STANDARD_HEADING}</h4>
+              <p className="mt-1 font-body text-sm text-desert-sand">{STANDARD_SUBTEXT}</p>
+
+              {modeTab === "all" ? (
+                <div className="mt-5 flex flex-col gap-10">
+                  {offlineEvents.length > 0 && (
+                    <div>
+                      <h4 className="font-display text-base font-semibold tracking-wide text-ivory">
+                        {SECTION_HEADING.offline}
+                      </h4>
+                      <div className="mt-4">{renderStandardGrid(offlineEvents)}</div>
+                    </div>
+                  )}
+                  {onlineEvents.length > 0 && (
+                    <div>
+                      <h4 className="font-display text-base font-semibold tracking-wide text-ivory">
+                        {SECTION_HEADING.online}
+                      </h4>
+                      <div className="mt-4">{renderStandardGrid(onlineEvents)}</div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-5">{renderStandardGrid(standardFiltered)}</div>
+              )}
+            </div>
+          )}
+
+          {directContactFiltered.length > 0 && (
+            <div>
+              <h4 className="font-display text-lg font-semibold tracking-wide text-ivory">
+                {DIRECT_CONTACT_HEADING}
+              </h4>
+              <p className="mt-1 font-body text-sm text-desert-sand">{DIRECT_CONTACT_SUBTEXT}</p>
+              <div className="mt-5">{renderDirectContactGrid(directContactFiltered)}</div>
+            </div>
+          )}
+        </div>
       )}
+
+      {openEvent ? (
+        <EventDetailsModal event={openEvent} onClose={() => setOpenEventId(null)} triggerRef={modalTriggerRef} />
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Rules page ("Laws of the Realm") display categories.
+ * Rules page ("Event Rules & Guidelines") display categories.
  *
  * The project brief asks the Rules page to organize content under eleven
  * named headings — Registration, Eligibility, Identification, Sports,

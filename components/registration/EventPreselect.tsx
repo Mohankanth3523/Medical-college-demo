@@ -32,8 +32,17 @@ export function EventPreselect() {
 
     // Ignore an unknown/malformed id rather than adding a phantom
     // selection the reducer/pricing calculator has no real data for.
-    if (!getEventById(eventId)) return;
+    const event = getEventById(eventId);
+    if (!event) return;
     if (state.selectedEvents.some((selection) => selection.eventId === eventId)) return;
+
+    // The event/registration pricing restructuring phase: a
+    // direct-contact event can never enter the package flow as a
+    // selection — `EventDetailsModal` no longer links here for one
+    // (its footer button is replaced entirely, see that component's own
+    // doc comment), but this guard is defense-in-depth against a stale
+    // bookmark or hand-typed `?event=` link for one of those 12 ids.
+    if (event.registrationMode === "direct-contact") return;
 
     dispatch({ type: "SELECT_EVENT", eventId });
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -20,6 +20,10 @@ const MAX_LISTED_EVENTS = 4;
  * (`lib/registration/pricing.ts` always sets `isEstimate: true` with
  * `assumptions[]`) — this component just surfaces that, it doesn't add or
  * relax any of it.
+ *
+ * Phase 29: added a College line — `state.participant.collegeName`, the
+ * complete official name `CollegeCombobox` stored, never a shortened
+ * display form.
  */
 export function RegistrationSummary() {
   const { state } = useRegistration();
@@ -37,7 +41,7 @@ export function RegistrationSummary() {
 
   return (
     <OrnamentalFrame padding="md" as="aside" className="lg:sticky lg:top-8">
-      <h2 className="font-display text-lg font-semibold tracking-wide text-ivory">Your Registry</h2>
+      <h2 className="font-display text-lg font-semibold tracking-wide text-ivory">Registration Summary</h2>
 
       <dl className="mt-6 flex flex-col gap-5">
         <div>
@@ -45,6 +49,15 @@ export function RegistrationSummary() {
           <dd className="mt-1 font-body text-sm text-ivory">
             {state.participant.name.trim() || (
               <span className="text-desert-sand/70">Not entered yet</span>
+            )}
+          </dd>
+        </div>
+
+        <div>
+          <dt className="font-body text-xs uppercase tracking-wide text-desert-sand">College</dt>
+          <dd className="mt-1 font-body text-sm text-ivory">
+            {state.participant.collegeName.trim() || (
+              <span className="text-desert-sand/70">Not selected yet</span>
             )}
           </dd>
         </div>

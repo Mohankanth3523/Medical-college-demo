@@ -4,7 +4,6 @@ import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react"
 import Link from "next/link";
 import type { AffinityEvent } from "@/types/event";
 import { EventBadge, GoldButton } from "@/components/design-system";
-import { formatEventFee } from "@/lib/events/formatFee";
 import { MODE_LABEL, TYPE_LABEL, formatDay } from "@/lib/events/eventLabels";
 
 export interface EventDetailsModalProps {
@@ -40,6 +39,28 @@ const PLACEHOLDER = "Details to be announced.";
  * is *omitted* rather than placeholder'd — see `formatDay`'s own doc
  * comment for why that field specifically has a real "not applicable"
  * case, not just an unstated one).
+ *
+ * Phase 31: the fee line that used to sit above the "Register" button is
+ * gone — pricing is a package-level concept now (`data/pricing.ts`), and
+ * the phase brief is explicit that individual event pricing must not
+ * appear anywhere in this modal. The event's own `fee` field is untouched
+ * in `data/events/*` (still there for a future backend), this view just
+ * no longer reads it.
+ *
+ * The event/registration pricing restructuring phase: for a
+ * `registrationMode: "direct-contact"` event, the footer's "Register for
+ * This Event" button — which links into the package registration flow —
+ * is replaced entirely by a plain, static notice: "Separate entry
+ * event." followed by an instruction to contact the in-charge listed in
+ * the Contact section above, plus "Please contact the event in-charge
+ * for participation and payment details." There is no payment button, no
+ * checkout affordance, and no link into `/register` here — this is the
+ * one place in the app besides the card itself that a direct-contact
+ * event surfaces, and it must never imply an online-payment workflow
+ * this frontend doesn't have. A `registration-mode` chip joins the
+ * existing category/mode badges in the header for the same reason
+ * `EventCard` shows one — so the distinction is visible before a reader
+ * gets anywhere near the Contact section.
  */
 export function EventDetailsModal({ event, onClose, triggerRef }: EventDetailsModalProps) {
   const titleId = useId();
@@ -86,6 +107,7 @@ export function EventDetailsModal({ event, onClose, triggerRef }: EventDetailsMo
 
   const showVerificationNote = event.verificationStatus !== "confirmed";
   const dayLabel = formatDay(event.day);
+  const isDirectContact = event.registrationMode === "direct-contact";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
@@ -107,6 +129,7 @@ export function EventDetailsModal({ event, onClose, triggerRef }: EventDetailsMo
             <div className="flex flex-wrap items-center gap-2">
               <EventBadge variant="category" value={event.category} />
               <EventBadge variant="mode" value={event.mode} />
+              {isDirectContact ? <EventBadge variant="registration-mode" value={event.registrationMode} /> : null}
             </div>
             <h2 id={titleId} className="font-display text-2xl font-semibold text-ivory sm:text-3xl">
               {event.name}
@@ -215,6 +238,9 @@ export function EventDetailsModal({ event, onClose, triggerRef }: EventDetailsMo
             </Section>
 
             <Section title="Contact">
+              {isDirectContact ? (
+                <p className="mb-2 font-body text-sm italic text-warm-gold">Separate entry event.</p>
+              ) : null}
               {event.contact && event.contact.length > 0 ? (
                 <ul className="flex flex-col gap-1">
                   {event.contact.map((person, index) => (
@@ -238,15 +264,25 @@ export function EventDetailsModal({ event, onClose, triggerRef }: EventDetailsMo
               ) : (
                 <p>{PLACEHOLDER}</p>
               )}
+              {isDirectContact ? (
+                <p className="mt-3 font-body text-sm text-desert-sand">
+                  Please contact the event in-charge for participation and payment details.
+                </p>
+              ) : null}
             </Section>
           </div>
         </div>
 
         <div className="border-t border-antique-gold/20 px-6 py-5">
-          <p className="mb-3 font-body text-sm text-desert-sand">{formatEventFee(event.fee)}</p>
-          <GoldButton href={`/register?event=${event.id}`} fullWidth onClick={onClose}>
-            Register for This Event
-          </GoldButton>
+          {isDirectContact ? (
+            <p className="text-center font-body text-xs uppercase tracking-[0.15em] text-desert-sand">
+              Direct-contact registration — no online payment for this event.
+            </p>
+          ) : (
+            <GoldButton href={`/register?event=${event.id}`} fullWidth onClick={onClose}>
+              Register for This Event
+            </GoldButton>
+          )}
         </div>
       </div>
     </div>

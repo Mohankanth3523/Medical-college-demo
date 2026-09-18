@@ -1,9 +1,10 @@
-import type { EventCategory, EventMode, VerificationStatus } from "@/types/event";
+import type { EventCategory, EventMode, RegistrationMode, VerificationStatus } from "@/types/event";
 
 type EventBadgeProps =
   | { variant: "category"; value: EventCategory; className?: string }
   | { variant: "mode"; value: EventMode; className?: string }
-  | { variant: "verification"; value: VerificationStatus; className?: string };
+  | { variant: "verification"; value: VerificationStatus; className?: string }
+  | { variant: "registration-mode"; value: RegistrationMode; className?: string };
 
 const CATEGORY_LABEL: Record<EventCategory, string> = {
   sports: "Sports",
@@ -22,6 +23,20 @@ const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
   confirmed: "Confirmed",
   "pending-organizer": "Pending Organizer Confirmation",
   conflicting: "Conflicting Sources — Verify",
+};
+
+/**
+ * The event/registration pricing restructuring phase: "Direct Contact
+ * Registration" must read as another official event category, not a
+ * warning — so it shares this file's ordinary gold-on-dark chip styling,
+ * never the burgundy "conflicting" treatment. "standard" has a label
+ * defined for type-completeness but this app never actually renders it —
+ * a standard event needs no extra chip beyond its existing category/mode
+ * pair (see EventCard's doc comment).
+ */
+const REGISTRATION_MODE_LABEL: Record<RegistrationMode, string> = {
+  standard: "Standard Package Event",
+  "direct-contact": "Direct Contact Registration",
 };
 
 /** Small dot used on confirmed/pending chips — a plain circle, no icon font/dependency. */
@@ -86,6 +101,15 @@ export function EventBadge(props: EventBadgeProps) {
         ].join(" ")}
       >
         {MODE_LABEL[value]}
+      </span>
+    );
+  }
+
+  if (variant === "registration-mode") {
+    // Dignified, not alarming — same gold chip language as category/mode, never the burgundy "conflicting" treatment.
+    return (
+      <span className={[BASE_CLASS, "border-antique-gold bg-antique-gold/10 text-antique-gold", className].join(" ")}>
+        {REGISTRATION_MODE_LABEL[value]}
       </span>
     );
   }

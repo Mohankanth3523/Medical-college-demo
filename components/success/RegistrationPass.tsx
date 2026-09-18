@@ -150,6 +150,17 @@ function buildPassHtml(data: {
  * branding must never dominate the registration pass, and a demo pass a
  * participant might screenshot or print is exactly the surface where
  * "dominate" is easiest to accidentally do with two more logo images.
+ *
+ * Phase 33 deliberately left this page's sizing and its text-only
+ * digital-partners line as they were — that session's "make it big,
+ * clearly visible" request was applied to `Hero`, `RegistrationLayout`,
+ * and the `Footer`/homepage digital-partner rows (all places where a
+ * bigger mark just reads as more premium), but a printable, screenshot-
+ * able registration pass is exactly the surface the paragraph above
+ * already explains a bigger or logo'd partner credit would hurt, not
+ * help. The refreshed artwork itself still reaches this page — it's the
+ * same `siteBranding.event.logo` path everywhere — only the size and the
+ * partner treatment stayed put.
  */
 export function RegistrationPass() {
   const { state } = useRegistration();
@@ -201,7 +212,7 @@ export function RegistrationPass() {
     return (
       <SectionContainer width="content" verticalPadding>
         <p role="status" className="text-center font-body text-sm text-desert-sand">
-          Loading your registry…
+          Loading your registration…
         </p>
       </SectionContainer>
     );
@@ -239,8 +250,8 @@ export function RegistrationPass() {
       <SectionHeading
         as="h1"
         eyebrow="AFFINITY '26 · Registration Complete (Demo)"
-        title="Your Tale Has Begun"
-        subtitle="A demo copy of your registration pass — carry it, print it, or save it below."
+        title="Registration Successful"
+        subtitle="Your AFFINITY '26 registration has been recorded. This is a demo pass — carry it, print it, or save it below."
       />
 
       <div className="mx-auto mt-10 max-w-xl">

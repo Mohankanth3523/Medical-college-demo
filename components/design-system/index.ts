@@ -40,6 +40,9 @@ export type { CrescentProps } from "./Crescent";
 export { PalaceSilhouette } from "./PalaceSilhouette";
 export type { PalaceSilhouetteProps } from "./PalaceSilhouette";
 
+export { GeometricBand } from "./GeometricBand";
+export type { GeometricBandProps } from "./GeometricBand";
+
 export { ScrollReveal } from "./ScrollReveal";
 export type { ScrollRevealProps } from "./ScrollReveal";
 

@@ -36,16 +36,27 @@ function formatRupees(amount: number): string {
 }
 
 /**
- * Step 04 — "Choose Your Experience". Three official packages
+ * Step 03 — Select Registration Package. Three official packages
  * (docs/affinity-content-truth.md §5) as a radio choice, plus a live
- * pricing breakdown reading straight from `state.pricing`
+ * pricing readout reading straight from `state.pricing`
  * (`lib/registration/pricing.ts`) — never a client-side arbitrary number.
- * "Base Registration"/"Food"/"Accommodation" are an exact arithmetic
- * decomposition of the three stated tier prices (₹480/₹1,100/₹1,500), not
- * invented figures — see the doc comment in `pricing.ts` for the exact
- * derivation. Event-specific fees (Chess, Track & Field, Short Film, the
- * online bundle, each esports title) come from each selected event's own
- * `fee` field, already computed by the same calculator.
+ *
+ * Phase 31 (event selection & pricing cleanup): the displayed total is
+ * now always exactly the selected package's own price — no per-event fee
+ * (Chess, Track & Field, Short Film, the online bundle, any esports
+ * title) is added to it, and the Chess-only-registration override that
+ * used to replace the base package with a flat ₹250 no longer applies to
+ * this display, per the phase brief's explicit instruction ("Do NOT add
+ * individual event fees to the displayed total... Do not display
+ * separate prices for... chess"). That override is still true of the
+ * official brochure (docs/affinity-content-truth.md §5) — it has not been
+ * deleted from the source-of-truth doc, and `data/events/sports.ts`'s
+ * Chess record still carries its own `fee` — this is a deliberate,
+ * documented simplification of what the *frontend displays*, not a
+ * correction of the source. See docs/phase-31-event-pricing-cleanup-notes.md
+ * for the [VERIFY WITH ORGANIZER] this leaves open: how a Chess-only
+ * registrant's real payment should reconcile with the flat package price
+ * now shown here.
  *
  * Like Events (Phase 13), "Next" uses the simple boolean gate in
  * `RegistrationNavigation` (`isPackageStepValid`) rather than a
@@ -54,14 +65,13 @@ function formatRupees(amount: number): string {
  */
 export function PackageStep() {
   const { state, dispatch } = useRegistration();
-  const isChessOnly = state.selectedEvents.length === 1 && state.selectedEvents[0]?.eventId === "chess";
 
   return (
     <div>
       <div className="flex flex-col gap-1">
-        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Choose Your Experience</h3>
+        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Select Registration Package</h3>
         <p className="font-accent text-base italic text-warm-gold">
-          Three paths through the palace — registration, and how far its hospitality extends.
+          Choose the package that best fits your AFFINITY &apos;26 registration.
         </p>
       </div>
 
@@ -119,19 +129,6 @@ export function PackageStep() {
           })}
         </div>
       </fieldset>
-
-      {isChessOnly && (
-        <div className="mt-6 flex flex-col gap-1 border border-warm-gold/50 px-4 py-3">
-          <p className="font-body text-xs font-medium uppercase tracking-wide text-warm-gold">
-            Chess-only registration
-          </p>
-          <p className="font-body text-sm text-desert-sand">
-            Your only selected event is Chess, which has its own ₹250 fee that replaces the base
-            registration package rather than adding to it, per the official brochure. Food and
-            Accommodation, if chosen above, are still added on top of ₹250.
-          </p>
-        </div>
-      )}
 
       <PricingBreakdown pricing={state.pricing} className="mt-6" />
     </div>

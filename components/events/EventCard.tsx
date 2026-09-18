@@ -1,7 +1,6 @@
 import type { MouseEvent } from "react";
 import type { AffinityEvent } from "@/types/event";
 import { EventBadge, OrnamentalFrame } from "@/components/design-system";
-import { formatEventFee } from "@/lib/events/formatFee";
 import { TYPE_LABEL } from "@/lib/events/eventLabels";
 
 export interface EventCardProps {
@@ -13,6 +12,15 @@ export interface EventCardProps {
    * own ref) lets the caller manage one shared "return focus here on
    * close" ref instead of every card needing its own. Omitted entirely
    * — no dead button — when the card is used somewhere non-interactive.
+   *
+   * The event/registration pricing restructuring phase: for a
+   * `registrationMode: "direct-contact"` event, this is the *only*
+   * footer button ever rendered (see `isDirectContact` below) — it never
+   * toggles a package selection, whatever `onToggleSelect` is also
+   * passed. Newly passed by `EventsStep` as well as `EventsExplorer`, so
+   * a direct-contact card reached from either place opens the exact same
+   * `EventDetailsModal`, with the exact same "contact the in-charge"
+   * copy — one component, not two competing patterns.
    */
   onViewDetails?: (event: AffinityEvent, trigger: HTMLButtonElement) => void;
   /**
@@ -21,19 +29,24 @@ export interface EventCardProps {
    * multi-select. `selected` drives both the toggle's label/icon and a
    * subtle gold ring around the whole card. Independent of
    * `onViewDetails` (a card could in principle render both footers, one
-   * above the other, though no current caller passes both).
+   * above the other, though no current caller passes both) — except for
+   * a direct-contact event, where this is always ignored; see
+   * `onViewDetails` above.
    */
   selected?: boolean;
   onToggleSelect?: (event: AffinityEvent) => void;
   /**
    * Phase 23 (accessibility audit): the event name's own heading level.
    * `EventsExplorer` renders a page with its own `<h1>` ("The Royal
-   * Courts") and nothing else at `h2` before the card grid, so its cards
-   * pass `"h2"` to keep the outline correct (no `h1`→`h3` skip). The
-   * registration wizard's `EventsStep` sits under a `<h2>`/`<h3>` pair
-   * already (`RegistrationStep`'s "Events", then this step's own "Choose
-   * Your Tales"), so it leaves this at the default — repeating `h3` for
-   * each card there is a sibling-list heading, not a skip.
+   * Courts") — the event/registration pricing restructuring phase added
+   * its own `<h2>` per section ("Standard AFFINITY Events" /
+   * "Direct-Contact Events") above each card grid, so cards there now
+   * pass `"h3"` (a sibling-list heading nested under that section's
+   * `h2`, not a skip) — same value as the default, kept explicit at the
+   * call site for clarity. The registration wizard's `EventsStep` sits
+   * under a `<h2>`/`<h3>` pair already (`RegistrationStep`'s "Events",
+   * then this step's own "Select Events"), so it also leaves this at
+   * the default.
    * @default "h3"
    */
   headingLevel?: "h2" | "h3";
@@ -60,22 +73,48 @@ function SelectGlyph({ selected }: { selected: boolean }) {
 
 /**
  * One event's summary card. Presentational — no hooks of its own, no
- * data fetching — reused by `EventsExplorer`'s grid, and shaped to be
- * reusable later wherever else an event needs a compact summary (e.g.
- * the registration wizard's own event-selection step). `onViewDetails`
- * is a plain callback prop, not a hook, so this file still doesn't need
- * `"use client"` itself — it only behaves like client code because
- * `EventsExplorer`, its one caller so far, already is.
+ * data fetching — reused by `EventsExplorer`'s grid and the registration
+ * wizard's Events step. `onViewDetails` is a plain callback prop, not a
+ * hook, so this file still doesn't need `"use client"` itself — it only
+ * behaves like client code because its callers already are.
+ *
+ * Phase 31 (event selection & pricing cleanup): this card answers exactly
+ * four questions — "What is this event?" (category + name), "Online or
+ * offline?" (mode badge), "Individual or team?" (`TYPE_LABEL`), and "Who
+ * is the contact?" (below) — nothing else. No fee, price, or payment text
+ * appears anywhere on this component; pricing is a package-level concept
+ * now (`data/pricing.ts` / `lib/registration/pricing.ts`), deliberately
+ * kept off the event card. The data-verification badge (`EventBadge
+ * variant="verification"`, e.g. "Pending Organizer Confirmation") is also
+ * gone from the card — the phase brief explicitly lists that exact phrase
+ * as clutter to remove — but the same information is still visible in
+ * `EventDetailsModal`, one click away, where a genuine data-confidence
+ * caveat is worth surfacing.
  *
  * Every displayed field is read straight off the `AffinityEvent` passed
- * in; the only thing this component computes is formatting
- * (`formatEventFee`), never a new fact. Two fields are conditionally
- * omitted rather than shown with a placeholder: `description` (some
- * events don't have a one-line summary in the source data) and the
- * limited-slot indicator (only rendered when `limitedSlots.isLimited`
- * is explicitly `true` in the data — never a fabricated "X spots left"
- * count, since this frontend has no live registration numbers to
- * report).
+ * in; nothing here computes a new fact. `description` is conditionally
+ * omitted (some events have no one-line summary in the source data), and
+ * the contact block falls back to the literal words "To be announced"
+ * when `event.contact` is empty — never a fabricated name or number. The
+ * limited-slot indicator, when shown, is deliberately just the words
+ * "Limited Slots" — never `limitedSlots.cap` (e.g. "First 36"), since the
+ * brief calls that number-bearing phrasing out by name as clutter to
+ * remove and asks for "a very subtle label" instead.
+ *
+ * The event/registration pricing restructuring phase: a
+ * `registrationMode: "direct-contact"` event (Chess, Badminton, the
+ * Track & Field group, Free Fire, PUBG, E-Football, FIFA, Short Film,
+ * Sollal Vel) gets a "Direct Contact Registration" chip alongside its
+ * category/mode badges, and its footer *never* renders the
+ * select/selected toggle, however `onToggleSelect` is wired by the
+ * caller — clicking it must never be able to add the event to
+ * `RegistrationState.selectedEvents` as a package selection. Instead it
+ * always renders the same "Contact In-Charge" trigger a standard card's
+ * `onViewDetails` uses, just relabeled, opening the same
+ * `EventDetailsModal` — which itself replaces its package-registration
+ * button with a plain "contact the in-charge" notice for this event
+ * type. Still no fee/price text anywhere on the card itself, matching
+ * the rest of this component's existing rule.
  */
 export function EventCard({
   event,
@@ -84,8 +123,9 @@ export function EventCard({
   onToggleSelect,
   headingLevel: HeadingTag = "h3",
 }: EventCardProps) {
-  const showVerificationFlag = event.verificationStatus !== "confirmed";
   const isLimited = event.limitedSlots?.isLimited === true;
+  const isDirectContact = event.registrationMode === "direct-contact";
+  const contacts = event.contact ?? [];
 
   function handleViewDetails(clickEvent: MouseEvent<HTMLButtonElement>) {
     onViewDetails?.(event, clickEvent.currentTarget);
@@ -100,20 +140,24 @@ export function EventCard({
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <EventBadge variant="category" value={event.category} />
-        <EventBadge variant="mode" value={event.mode} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <EventBadge variant="category" value={event.category} />
+          <EventBadge variant="mode" value={event.mode} />
+          {isDirectContact ? <EventBadge variant="registration-mode" value={event.registrationMode} /> : null}
+        </div>
+        {isLimited ? (
+          <span className="font-body text-[0.65rem] font-medium uppercase tracking-[0.15em] text-antique-gold/70">
+            Limited Slots
+          </span>
+        ) : null}
       </div>
 
       <HeadingTag className="font-display text-lg font-semibold leading-snug text-ivory sm:text-xl">
         {event.name}
       </HeadingTag>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-body text-sm text-desert-sand">
-        <span>{TYPE_LABEL[event.type]}</span>
-        <span aria-hidden="true">&middot;</span>
-        <span>{formatEventFee(event.fee)}</span>
-      </div>
+      <p className="font-body text-sm text-desert-sand">{TYPE_LABEL[event.type]}</p>
 
       {event.description ? (
         <p className="font-body text-sm leading-relaxed text-desert-sand sm:text-base">
@@ -121,46 +165,68 @@ export function EventCard({
         </p>
       ) : null}
 
-      {isLimited || showVerificationFlag ? (
-        <div className="flex flex-wrap gap-2">
-          {isLimited ? (
-            <span className="inline-flex items-center gap-1.5 border border-antique-gold/50 px-2.5 py-1 font-body text-xs font-medium uppercase tracking-wide text-antique-gold">
-              {event.limitedSlots?.cap ? `Limited — First ${event.limitedSlots.cap}` : "Limited Slots"}
-            </span>
-          ) : null}
-          {showVerificationFlag ? (
-            <EventBadge variant="verification" value={event.verificationStatus} />
-          ) : null}
-        </div>
-      ) : null}
+      <div className="border-t border-antique-gold/15 pt-3">
+        <p className="font-body text-[0.65rem] font-medium uppercase tracking-[0.15em] text-desert-sand/70">
+          Contact
+        </p>
+        {contacts.length > 0 ? (
+          <ul className="mt-1.5 flex flex-col gap-1">
+            {contacts.map((person, index) => (
+              <li key={index} className="font-body text-sm text-ivory">
+                {person.name}
+                {person.phone ? (
+                  <span className="text-desert-sand"> &middot; {person.phone}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1.5 font-body text-sm text-desert-sand/80">To be announced</p>
+        )}
+      </div>
 
-      {onViewDetails ? (
-        <button
-          type="button"
-          onClick={handleViewDetails}
-          className="mt-auto inline-flex min-h-11 items-center gap-1.5 border-t border-antique-gold/20 pt-3 text-left font-body text-sm font-medium uppercase tracking-wide text-antique-gold transition-colors duration-fast hover:text-warm-gold"
-        >
-          View Details
-          <span aria-hidden="true">&rarr;</span>
-        </button>
-      ) : null}
+      {isDirectContact ? (
+        onViewDetails ? (
+          <button
+            type="button"
+            onClick={handleViewDetails}
+            className="mt-auto inline-flex min-h-11 items-center gap-1.5 border-t border-antique-gold/20 pt-3 text-left font-body text-sm font-medium uppercase tracking-wide text-antique-gold transition-colors duration-fast hover:text-warm-gold"
+          >
+            Contact In-Charge
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        ) : null
+      ) : (
+        <>
+          {onViewDetails ? (
+            <button
+              type="button"
+              onClick={handleViewDetails}
+              className="mt-auto inline-flex min-h-11 items-center gap-1.5 border-t border-antique-gold/20 pt-3 text-left font-body text-sm font-medium uppercase tracking-wide text-antique-gold transition-colors duration-fast hover:text-warm-gold"
+            >
+              View Details
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          ) : null}
 
-      {onToggleSelect ? (
-        <button
-          type="button"
-          aria-pressed={Boolean(selected)}
-          onClick={() => onToggleSelect(event)}
-          className={[
-            "mt-auto inline-flex min-h-11 w-full items-center justify-center gap-2 border-t pt-3 font-body text-sm font-semibold uppercase tracking-wide transition-colors duration-fast",
-            selected
-              ? "border-antique-gold/40 text-antique-gold"
-              : "border-antique-gold/20 text-desert-sand hover:text-ivory",
-          ].join(" ")}
-        >
-          <SelectGlyph selected={Boolean(selected)} />
-          {selected ? "Selected" : "Select This Event"}
-        </button>
-      ) : null}
+          {onToggleSelect ? (
+            <button
+              type="button"
+              aria-pressed={Boolean(selected)}
+              onClick={() => onToggleSelect(event)}
+              className={[
+                "mt-auto inline-flex min-h-11 w-full items-center justify-center gap-2 border-t pt-3 font-body text-sm font-semibold uppercase tracking-wide transition-colors duration-fast",
+                selected
+                  ? "border-antique-gold/40 text-antique-gold"
+                  : "border-antique-gold/20 text-desert-sand hover:text-ivory",
+              ].join(" ")}
+            >
+              <SelectGlyph selected={Boolean(selected)} />
+              {selected ? "Selected" : "Select This Event"}
+            </button>
+          ) : null}
+        </>
+      )}
     </OrnamentalFrame>
   );
 }

@@ -3,9 +3,19 @@ import type { DigitalPartner } from "@/data/branding";
 
 export interface DigitalPartnersProps {
   partners: readonly DigitalPartner[];
-  /** @default "h-14 sm:h-16" — see docs/phase-29-brand-logo-integration-notes.md for why this specific height was chosen for the homepage section. */
+  /**
+   * @default "h-20 sm:h-24 lg:h-28" — see
+   * docs/phase-29-brand-logo-integration-notes.md for why this row exists
+   * as its own quiet section in the first place, and
+   * docs/phase-33-logo-refresh-notes.md for why this specific height was
+   * raised from Phase 29's original "h-14 sm:h-16" (a direct "make it
+   * big, clearly visible" request) without abandoning that section's
+   * still-true "digital partners never outsize the AFFINITY event
+   * emblem" rule — `event` renders even larger than this everywhere it
+   * appears (see `Hero`).
+   */
   heightClassName?: string;
-  /** @default "md" */
+  /** @default "lg" */
   padding?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -26,8 +36,8 @@ export interface DigitalPartnersProps {
  */
 export function DigitalPartners({
   partners,
-  heightClassName = "h-14 sm:h-16",
-  padding = "md",
+  heightClassName = "h-20 sm:h-24 lg:h-28",
+  padding = "lg",
   className = "",
 }: DigitalPartnersProps) {
   if (partners.length === 0) return null;

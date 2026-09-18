@@ -27,6 +27,22 @@ export interface EventsExplorerProps {
  * details modal is open (`openEventId`) — exactly the "deliberate
  * future step" that phase's notes said a real selection feature should
  * be, rather than folding it into the filter chips.
+ *
+ * The event/registration pricing restructuring phase: the filtered
+ * result now renders as two visually separated sections — Standard
+ * AFFINITY Events (covered by the registration packages) and
+ * Direct-Contact Events (Chess, Badminton, the Track & Field group, Free
+ * Fire, PUBG, E-Football, FIFA, Short Film, Sollal Vel — separate entry
+ * fee and process, handled by the event's own in-charge) — rather than
+ * one flat grid, so the distinction is visible while browsing, not just
+ * inside a card's own details modal. The existing category tabs
+ * (All/Sports/Culturals/Online) and search keep filtering across both
+ * sections exactly as before; nothing about `EVENT_GROUPS`/
+ * `EVENT_GROUP_CATEGORIES` changed. Every card still opens the same
+ * `EventDetailsModal` via `onViewDetails` regardless of section — this
+ * page has never had a selection/payment mechanism of its own, so
+ * `EventCard`'s direct-contact footer swap (see its own doc comment)
+ * is the only behavior difference a direct-contact card needs here.
  */
 export function EventsExplorer({ events }: EventsExplorerProps) {
   const [group, setGroup] = useState<EventGroup>("all");
@@ -46,6 +62,15 @@ export function EventsExplorer({ events }: EventsExplorerProps) {
       return haystack.toLowerCase().includes(q);
     });
   }, [events, group, query]);
+
+  const standardEvents = useMemo(
+    () => filtered.filter((event) => event.registrationMode === "standard"),
+    [filtered],
+  );
+  const directContactEvents = useMemo(
+    () => filtered.filter((event) => event.registrationMode === "direct-contact"),
+    [filtered],
+  );
 
   const openEvent = openEventId ? (events.find((event) => event.id === openEventId) ?? null) : null;
 
@@ -109,10 +134,39 @@ export function EventsExplorer({ events }: EventsExplorerProps) {
       </p>
 
       {filtered.length > 0 ? (
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((event) => (
-            <EventCard key={event.id} event={event} onViewDetails={handleViewDetails} headingLevel="h2" />
-          ))}
+        <div className="mt-6 flex flex-col gap-12">
+          {standardEvents.length > 0 && (
+            <div>
+              <h2 className="font-display text-xl font-semibold tracking-wide text-ivory">
+                Standard AFFINITY Events
+              </h2>
+              <p className="mt-1 font-body text-sm text-desert-sand">
+                Covered by your selected registration package.
+              </p>
+              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {standardEvents.map((event) => (
+                  <EventCard key={event.id} event={event} onViewDetails={handleViewDetails} headingLevel="h3" />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {directContactEvents.length > 0 && (
+            <div>
+              <h2 className="font-display text-xl font-semibold tracking-wide text-ivory">
+                Direct-Contact Events
+              </h2>
+              <p className="mt-1 font-body text-sm text-desert-sand">
+                These events have separate entry procedures. Contact the respective in-charge for
+                participation details.
+              </p>
+              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {directContactEvents.map((event) => (
+                  <EventCard key={event.id} event={event} onViewDetails={handleViewDetails} headingLevel="h3" />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="mt-12 flex flex-col items-center gap-2 border border-antique-gold/20 px-6 py-16 text-center">

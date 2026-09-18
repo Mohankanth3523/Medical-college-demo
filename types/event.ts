@@ -41,6 +41,31 @@ export type VerificationStatus =
   /** Source documents state this fact two different ways; see verificationNotes and docs/affinity-content-truth.md §14. */
   | "conflicting";
 
+/**
+ * The event/registration pricing restructuring phase (see
+ * docs/affinity-content-truth.md and the phase's own notes doc): every
+ * AFFINITY '26 event is either
+ *
+ *  - "standard" — covered by one of the three registration packages
+ *    (`data/pricing.ts`). No individual fee for a standard event is ever
+ *    added to the package total; its own `fee` field stays in the data
+ *    purely for reference/a future backend, never surfaced as something
+ *    to pay on the Events page or in the registration wizard.
+ *  - "direct-contact" — Chess, Badminton, the Track & Field group
+ *    (Athletics — Track, Shot Put, Discus Throw, Javelin Throw), Free
+ *    Fire, PUBG, E-Football, FIFA, Short Film, and Sollal Vel. These
+ *    events have their own separate entry fee and their own registration
+ *    process handled directly by the event's in-charge — never through
+ *    the online package flow. They stay visible everywhere events are
+ *    browsed, but cannot be added to `RegistrationState.selectedEvents`
+ *    as a package selection; the UI instead surfaces the event's own
+ *    `contact` list and `fee` as "contact the in-charge" information.
+ *
+ * This field is the single source of truth for that split — no component
+ * re-derives it from an event's id, category, or fee shape.
+ */
+export type RegistrationMode = "standard" | "direct-contact";
+
 export interface ContactPerson {
   name: string;
   /** Phone number as printed in the source (not normalized/validated — some source numbers are inconsistently formatted). */
@@ -126,4 +151,7 @@ export interface AffinityEvent {
 
   verificationStatus: VerificationStatus;
   verificationNotes?: string;
+
+  /** See `RegistrationMode`'s own doc comment. Required — every event must be explicitly classified, never left to default. */
+  registrationMode: RegistrationMode;
 }

@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useRegistration } from "@/lib/registration/context";
 import { getEventById } from "@/data/events";
-import { formatEventFee } from "@/lib/events/formatFee";
 import { validateTeamSelection, type TeamSelectionErrors } from "@/lib/registration/validation";
 import { OrnamentalFrame } from "@/components/design-system";
 import { REGISTRATION_STEPS } from "@/types/registration";
@@ -194,9 +193,7 @@ export function DetailsStep() {
                 <CheckGlyph />
                 <div className="flex flex-col">
                   <span className="font-body text-sm font-medium text-ivory">{event.name}</span>
-                  <span className="font-body text-xs text-desert-sand">
-                    Individual entry &middot; {formatEventFee(event.fee)}
-                  </span>
+                  <span className="font-body text-xs text-desert-sand">Individual entry</span>
                 </div>
               </li>
             ))}

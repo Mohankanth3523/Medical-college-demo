@@ -23,6 +23,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: 100, unit: "per_person", notes: ONLINE_BUNDLE_FEE_NOTE },
     description: "Theme \"Magic in the ordinary\" — original, minimally edited photography.",
     rules: [
@@ -50,6 +51,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: 100, unit: "per_person", notes: ONLINE_BUNDLE_FEE_NOTE },
     description: "Original short-form video, up to 60 seconds, any theme.",
     rules: [
@@ -77,6 +79,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: 100, unit: "per_person", notes: ONLINE_BUNDLE_FEE_NOTE },
     description: "Theme \"A whole new world beyond sight\" — pencil-only artwork tying the Arabian Nights theme to the blindness-awareness cause.",
     rules: [
@@ -104,6 +107,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: 100, unit: "per_person", notes: ONLINE_BUNDLE_FEE_NOTE },
     description: "Theme \"Oneiric synapse: The concept of living light\" — abstract/conceptual art.",
     rules: [
@@ -130,6 +134,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: 100, unit: "per_person", notes: ONLINE_BUNDLE_FEE_NOTE },
     description: "Original Tamil poem, 10–15 lines, on \"Modern love\" or \"Unity in diversity\".",
     rules: [
@@ -156,6 +161,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: 100, unit: "per_person", notes: ONLINE_BUNDLE_FEE_NOTE },
     description: "Original English poem, 8–12 lines, theme \"Weight of Invisible Scars\".",
     rules: [
@@ -184,6 +190,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: null, unit: "unspecified" },
     description: "Split-screen recreation of a movie scene/song, original on top, recreation below, ≤60 seconds.",
     rules: [
@@ -211,6 +218,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: null, unit: "unspecified" },
     description: "AI-generated poster on \"The Lamp of Dreams\" — the one online event that explicitly requires AI generation (opposite of every other online-cultural event, which bans it).",
     rules: [
@@ -239,6 +247,7 @@ export const onlineCulturalEvents: AffinityEvent[] = [
     category: "online-cultural",
     mode: "online",
     type: "individual",
+    registrationMode: "standard",
     fee: { amount: null, unit: "unspecified" },
     description: "Recreate any movie/series poster, crediting the editing app and original title/director.",
     rules: [
@@ -269,7 +278,12 @@ export const onlineEsportsEvents: AffinityEvent[] = [
     category: "online-esports",
     mode: "online",
     type: "duo",
-    fee: { amount: 100, unit: "per_person", notes: "1v1 mode: ₹100 per person. 2v2 mode: ₹150 per team." },
+    registrationMode: "direct-contact",
+    fee: {
+      amount: 100,
+      unit: "per_person",
+      notes: "Direct-contact registration. 1v1 mode: ₹100 per person (consistent across every source). 2v2 mode: ₹150 — source documents disagree on the unit: one states ₹150 per person, another states ₹150 per team. This is not silently resolved either way here — [VERIFY WITH ORGANIZER] before paying; 2v2 participants should confirm the exact 2v2 fee with the event in-charge directly.",
+    },
     description: "1v1 and 2v2 knockout tournament, 2-leg matches.",
     rules: [
       "1v1 and 2v2 modes; knockout; 2-leg matches; 8-minute matches.",
@@ -288,7 +302,8 @@ export const onlineEsportsEvents: AffinityEvent[] = [
       { name: "Ram Balaji", phone: "8838755590" },
       { name: "Nithish Kumar", phone: "8825476263" },
     ],
-    verificationStatus: "confirmed",
+    verificationStatus: "conflicting",
+    verificationNotes: "The 2v2 entry fee's unit (per person vs. per team) is stated inconsistently across the supplied source documents. Preserved as an open question in fee.notes rather than resolved — do not assume either reading; confirm with the in-charge before paying.",
   },
   {
     id: "fifa",
@@ -296,6 +311,7 @@ export const onlineEsportsEvents: AffinityEvent[] = [
     category: "online-esports",
     mode: "online",
     type: "individual",
+    registrationMode: "direct-contact",
     fee: { amount: 100, unit: "per_person" },
     description: "1v1 knockout tournament, PvP rules.",
     rules: [
@@ -320,7 +336,8 @@ export const onlineEsportsEvents: AffinityEvent[] = [
     category: "online-esports",
     mode: "online",
     type: "squad",
-    fee: { amount: 400, unit: "per_squad", notes: "₹400 per squad, or ₹100 per person." },
+    registrationMode: "direct-contact",
+    fee: { amount: 400, unit: "per_squad", notes: "Direct-contact registration. Source documents give two figures for the same entry — ₹400 per squad, and separately ₹100 per person (a 4-person squad would total the same ₹400 either way, so this may not be a true conflict, but the two phrasings are preserved as given rather than assumed equivalent) — confirm the exact payment method with the event in-charge." },
     team: { max: 5, notes: "4 main players + 1 substitute." },
     eligibility: "Minimum in-game level 25. Android/iOS mobile only — no emulators.",
     description: "3 matches across 3 different maps; points-based scoring.",
@@ -347,6 +364,7 @@ export const onlineEsportsEvents: AffinityEvent[] = [
     category: "online-esports",
     mode: "online",
     type: "squad",
+    registrationMode: "direct-contact",
     fee: { amount: 200, unit: "per_team", notes: "₹200 per team of 4 players." },
     team: { min: 4, max: 4 },
     eligibility: "In-game ID level must be higher than 40. Android/iOS only — no PC/emulator.",

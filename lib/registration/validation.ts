@@ -12,15 +12,11 @@
  * / `data/registrationVerification.ts`, not invented here.
  */
 import type { EventSelection, Participant, PackageSelection, RegistrationReview } from "@/types/registration";
-import type { TeamComposition } from "@/types/event";
-import { getEventById } from "@/data/events";
 
 export type ParticipantErrors = Partial<Record<keyof Participant, string>>;
 
 const NAME_MIN = 2;
 const NAME_MAX = 80;
-const COLLEGE_MIN = 2;
-const COLLEGE_MAX = 120;
 const EMAIL_MAX = 254;
 
 /** 10-digit Indian mobile number, optionally prefixed with +91/91/0, optional spaces/hyphens — stripped before testing. */
@@ -46,13 +42,15 @@ export function validateParticipant(participant: Participant): ParticipantErrors
     errors.name = `Name must be under ${NAME_MAX} characters.`;
   }
 
-  const collegeName = participant.collegeName.trim();
-  if (!collegeName) {
-    errors.collegeName = "Enter your college name.";
-  } else if (collegeName.length < COLLEGE_MIN) {
-    errors.collegeName = `College name must be at least ${COLLEGE_MIN} characters.`;
-  } else if (collegeName.length > COLLEGE_MAX) {
-    errors.collegeName = `College name must be under ${COLLEGE_MAX} characters.`;
+  // Phase 29: a college is only ever set together with its id, by
+  // CollegeCombobox's onSelect (see types/registration.ts) — so requiring
+  // collegeId here, rather than re-validating the string, is what
+  // actually enforces "must select from the official list, not type
+  // arbitrary text." The collegeName.trim() check is a belt-and-suspenders
+  // guard against a corrupted/hand-edited localStorage record that somehow
+  // has an id but an empty name.
+  if (!participant.collegeId || !participant.collegeName.trim()) {
+    errors.collegeName = "Please select your college.";
   }
 
   if (!participant.yearOfStudy) {
@@ -96,126 +94,19 @@ export function isEventsStepValid(selectedEvents: EventSelection[]): boolean {
   return selectedEvents.length > 0;
 }
 
-const TEAM_NAME_MIN = 2;
-const TEAM_NAME_MAX = 60;
-const MEMBER_NAME_MIN = 2;
-const MEMBER_NAME_MAX = 80;
-
-export interface TeamSelectionErrors {
-  teamName?: string;
-  /** Roster-size (or "add at least one member") error — not tied to one specific input, so shown as a section-level message rather than under a single field. */
-  size?: string;
-  captain?: string;
-  /** Keyed by `TeamMember.id`. */
-  members: Record<string, string>;
-}
-
 /**
- * Step 03 — Details. Validates one team event's roster against its own
- * `TeamComposition` (`event.team`, `types/event.ts`) — the *only* place
- * team-size bounds come from. Several real AFFINITY '26 team events have
- * no `team.min`/`team.max` at all (e.g. Short Film, Carrom — see
- * `docs/phase-14-details-step-notes.md`), and the phase brief is explicit:
- * "If the source does not specify a team size: do not invent it." So a
- * missing bound here means *no size error is ever produced for that
- * bound* — never a guessed default. The one exception is a bare "add at
- * least one member" floor when the roster is empty, which isn't a
- * numeric fact from the brochure at all — a team of zero people isn't a
- * team, independent of what the source states about the upper bound.
- *
- * `teamName` and `captainId` are this wizard's own fields (see their doc
- * comments in `types/registration.ts`), so their required-ness is an
- * ordinary UX rule, the same class of judgment call as
- * `validateParticipant`'s length limits — not a sourced fact either.
+ * Registration flow simplification phase: there is no team-roster step
+ * (and no `validateTeamSelection`/`isDetailsStepValid` — this wizard never
+ * collects a team name, captain, or member roster; see
+ * `types/registration.ts`'s `EventSelection` doc comment and
+ * docs/phase-36-registration-flow-simplification-notes.md). A participant
+ * can still select a team/duo/squad event exactly like an individual one —
+ * `isEventsStepValid` above treats every real event the same way, with no
+ * per-type branching.
  */
-export function validateTeamSelection(
-  team: TeamComposition | undefined,
-  selection: EventSelection,
-): TeamSelectionErrors {
-  const errors: TeamSelectionErrors = { members: {} };
-
-  const teamName = (selection.teamName ?? "").trim();
-  if (!teamName) {
-    errors.teamName = "Enter a team name.";
-  } else if (teamName.length < TEAM_NAME_MIN) {
-    errors.teamName = `Team name must be at least ${TEAM_NAME_MIN} characters.`;
-  } else if (teamName.length > TEAM_NAME_MAX) {
-    errors.teamName = `Team name must be under ${TEAM_NAME_MAX} characters.`;
-  }
-
-  const members = selection.teamMembers;
-  const count = members.length;
-  const min = team?.min;
-  const max = team?.max;
-
-  if (count === 0) {
-    errors.size = "Add at least one team member.";
-  } else if (min != null && max != null) {
-    if (min === max && count !== min) {
-      errors.size = `Team size must be exactly ${min} members (currently ${count}).`;
-    } else if (count < min || count > max) {
-      errors.size = `Team size must be between ${min} and ${max} members (currently ${count}).`;
-    }
-  } else if (max != null && count > max) {
-    errors.size = `Team size must be at most ${max} members (currently ${count}).`;
-  } else if (min != null && count < min) {
-    errors.size = `Team size must be at least ${min} members (currently ${count}).`;
-  }
-  // else: the source doesn't state a bound on this side — nothing to enforce.
-
-  if (count > 0 && (!selection.captainId || !members.some((m) => m.id === selection.captainId))) {
-    errors.captain = "Select a team captain.";
-  }
-
-  const seenNames = new Map<string, string>();
-  for (const member of members) {
-    const name = member.name.trim();
-    if (!name) {
-      errors.members[member.id] = "Enter this member's name.";
-      continue;
-    }
-    if (name.length < MEMBER_NAME_MIN) {
-      errors.members[member.id] = `Name must be at least ${MEMBER_NAME_MIN} characters.`;
-      continue;
-    }
-    if (name.length > MEMBER_NAME_MAX) {
-      errors.members[member.id] = `Name must be under ${MEMBER_NAME_MAX} characters.`;
-      continue;
-    }
-    const normalized = name.toLowerCase();
-    if (seenNames.has(normalized)) {
-      errors.members[member.id] = "This name is already in the team.";
-    } else {
-      seenNames.set(normalized, member.id);
-    }
-  }
-
-  return errors;
-}
-
-export function isTeamSelectionValid(team: TeamComposition | undefined, selection: EventSelection): boolean {
-  const errors = validateTeamSelection(team, selection);
-  return !errors.teamName && !errors.size && !errors.captain && Object.keys(errors.members).length === 0;
-}
 
 /**
- * Step 03 as a whole. Individual events need no roster and are always
- * valid; every non-individual selected event must pass
- * `isTeamSelectionValid`. An event that has somehow gone missing from
- * `data/events/*` (should never happen — `EventPreselect`/`EventsStep`
- * only ever select real ids) is treated as valid rather than silently
- * blocking the wizard on a data-integrity bug this step can't fix.
- */
-export function isDetailsStepValid(selectedEvents: EventSelection[]): boolean {
-  return selectedEvents.every((selection) => {
-    const event = getEventById(selection.eventId);
-    if (!event || event.type === "individual") return true;
-    return isTeamSelectionValid(event.team, selection);
-  });
-}
-
-/**
- * Step 04 — Package. Like `isEventsStepValid`, "valid" means only "a
+ * Step 03 — Package. Like `isEventsStepValid`, "valid" means only "a
  * package has been chosen" — a simple boolean gate, not a form with
  * per-field errors. The three packages themselves (and their prices) are
  * the officially stated ones in `data/pricing.ts`; there is nothing else
@@ -226,11 +117,11 @@ export function isPackageStepValid(packageSelection: PackageSelection): boolean 
 }
 
 /**
- * Step 05 — Review. The only thing gating "Proceed" is the acknowledgement
+ * Step 04 — Review. The only thing gating "Proceed" is the acknowledgement
  * checkbox itself (`RegistrationReview.acceptedTerms`) — every other field
- * was already validated on its own step (Participant/Details) or needs no
+ * was already validated on its own step (Participant) or needs no
  * validation at all (Events/Package are simple selections). Re-checking
- * those here would duplicate `isParticipantValid`/`isDetailsStepValid`/
+ * those here would duplicate `isParticipantValid`/
  * `isEventsStepValid`/`isPackageStepValid` for no UX benefit, since a user
  * can't reach Review through the wizard's own "Next" flow without already
  * having passed them — they're each still independently enforced on their

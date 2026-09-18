@@ -13,7 +13,7 @@ function formatRupees(amount: number): string {
 type ConfirmPhase = "summary" | "demo-payment";
 
 /**
- * Step 06 — Confirm. This is a FRONTEND-ONLY payment demonstration, per
+ * Step 05 — Payment. This is a FRONTEND-ONLY payment demonstration, per
  * the project brief's own PAYMENT section: no Razorpay call, no API
  * route, no real transaction of any kind. The step is two local phases
  * (plain `useState`, not wizard/reducer state — this is purely
@@ -64,9 +64,9 @@ export function ConfirmStep() {
   return (
     <div>
       <div className="flex flex-col gap-1">
-        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">The Final Seal</h3>
+        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Payment</h3>
         <p className="font-accent text-base italic text-warm-gold">
-          One gesture stands between you and the gates of AFFINITY &apos;26.
+          Complete your AFFINITY &apos;26 registration payment.
         </p>
       </div>
 

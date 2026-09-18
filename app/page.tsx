@@ -3,6 +3,7 @@ import { Story } from "@/components/sections/Story";
 import { Theme } from "@/components/sections/Theme";
 import { Cause } from "@/components/sections/Cause";
 import { EventsTeaser } from "@/components/sections/EventsTeaser";
+import { GallerySection } from "@/components/sections/GallerySection";
 import { DigitalPartnersSection } from "@/components/sections/DigitalPartnersSection";
 import { CinematicIntro } from "@/components/intro/CinematicIntro";
 
@@ -24,6 +25,10 @@ import { CinematicIntro } from "@/components/intro/CinematicIntro";
  * Phase 29: `DigitalPartnersSection` is inserted after `EventsTeaser` and
  * before the (globally-mounted) `Footer` — its own dedicated moment, per
  * the brief's instruction, rather than folded into an existing section.
+ *
+ * Phase 32: `GallerySection` sits between `EventsTeaser` and
+ * `DigitalPartnersSection` — a "look at the energy" moment right after
+ * the events pitch, ahead of the closing partners/footer sequence.
  */
 export default function LandingPage() {
   return (
@@ -39,6 +44,8 @@ export default function LandingPage() {
       <Cause />
 
       <EventsTeaser />
+
+      <GallerySection />
 
       <DigitalPartnersSection />
     </div>

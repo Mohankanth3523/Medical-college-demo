@@ -129,18 +129,21 @@ export function Hero() {
       <SectionContainer as="div" width="narrow" className="relative z-10 py-section-2xl text-center">
         {/* 4. Title reveals */}
         <div className="animate-hero-4">
-          {/* Top institutional row — small and quiet, secondary to everything below it. */}
+          {/* Top institutional row — secondary to the event emblem below it, but
+              raised from Phase 04's original h-10/h-12 (Phase 33: "make it big,
+              clearly visible" applied sitewide) without letting it out-scale
+              the event mark. */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <BrandLogo
               src={siteBranding.college.logo}
               alt={siteBranding.college.alt}
-              heightClassName="h-10 sm:h-12"
+              heightClassName="h-12 sm:h-14"
               padding="sm"
             />
             <BrandLogo
               src={siteBranding.batch.logo}
               alt={siteBranding.batch.alt}
-              heightClassName="h-10 sm:h-12"
+              heightClassName="h-12 sm:h-14"
               padding="sm"
             />
           </div>
@@ -149,12 +152,15 @@ export function Hero() {
             Presented by the {festivalIdentity.presentedBy}
           </p>
 
-          {/* Main focal mark — the official event emblem, deliberately the largest brand mark on this page. */}
+          {/* Main focal mark — the official event emblem, deliberately the largest
+              brand mark on this page. Raised from Phase 04's h-20/h-28/h-32 in
+              step with the institutional row above, keeping the same margin
+              between them. */}
           <div className="mt-5 flex justify-center sm:mt-6">
             <BrandLogo
               src={siteBranding.event.logo}
               alt={siteBranding.event.alt}
-              heightClassName="h-20 sm:h-28 lg:h-32"
+              heightClassName="h-24 sm:h-32 lg:h-40"
               padding="lg"
             />
           </div>

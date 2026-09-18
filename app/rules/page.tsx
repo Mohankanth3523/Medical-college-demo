@@ -3,11 +3,15 @@ import { SectionContainer, SectionHeading } from "@/components/design-system";
 import { RulesContent } from "@/components/rules/RulesContent";
 
 export const metadata: Metadata = {
-  title: "Laws of the Realm — Rules & Regulations — AFFINITY '26",
+  title: "Event Rules & Guidelines — AFFINITY '26",
 };
 
 /**
- * Phase 19 — the real Rules page ("Laws of the Realm"). A Server
+ * Phase 19 — the real Rules page (registration flow simplification phase:
+ * retitled from "Laws of the Realm" to "Event Rules & Guidelines," per
+ * that phase's explicit instruction to swap this exact fantasy title for
+ * professional college-event wording — see
+ * docs/phase-36-registration-flow-simplification-notes.md). A Server
  * Component: the actual verified rule text (`data/rules.ts`, regrouped
  * for display by `data/rulesCategories.ts`) never needs client-side
  * state, only the accordion's own open/closed toggling does — that's
@@ -27,7 +31,7 @@ export default function RulesPage() {
       <SectionHeading
         as="h1"
         eyebrow="AFFINITY '26 · Rules & Regulations"
-        title="Laws of the Realm"
+        title="Event Rules & Guidelines"
         subtitle="Every clause below is drawn directly from the official AFFINITY '26 brochure and terms & conditions. Where the source documents disagree with each other, that conflict is flagged rather than silently resolved — see the notices under Eligibility and Payment."
       />
       <RulesContent />

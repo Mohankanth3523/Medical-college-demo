@@ -1,11 +1,27 @@
 /**
  * Registration wizard state model.
  *
- * The wizard is six steps (per the project brief): 01 PARTICIPANT,
- * 02 EVENTS, 03 DETAILS, 04 PACKAGE, 05 REVIEW, 06 CONFIRM. This file is
- * the shape of the state that flows through those steps — see
- * lib/registration/state.ts for the reducer that mutates it and
- * lib/registration/pricing.ts for how `pricing` gets computed.
+ * The wizard is five steps (registration flow simplification phase — see
+ * docs/phase-36-registration-flow-simplification-notes.md): 01 PARTICIPANT,
+ * 02 EVENTS, 03 PACKAGE, 04 REVIEW, 05 PAYMENT. A sixth, "Registration
+ * Complete," is the separate `/success` route, not a step in this wizard's
+ * own progress indicator — it was never part of `REGISTRATION_STEPS`
+ * before this phase either. This file is the shape of the state that
+ * flows through those steps — see lib/registration/state.ts for the
+ * reducer that mutates it and lib/registration/pricing.ts for how
+ * `pricing` gets computed.
+ *
+ * This is a COLLEGE MEDICAL FEST registration website: ONE STUDENT = ONE
+ * REGISTRATION. Every participant submits their own details, event
+ * selections, and package — never a full team roster. AFFINITY '26 does
+ * have team events, and a participant can still select one, but this
+ * wizard does not collect who else is on that team; the organizer manages
+ * team composition separately. A prior phase's "Details" step (team name +
+ * captain + member roster per team event) has been removed entirely — see
+ * the phase notes for why: neither a team name nor a member roster is a
+ * sourced official requirement anywhere in docs/affinity-content-truth.md,
+ * so collecting one was this wizard's own invented step, not a fact from
+ * the source documents.
  *
  * FRONTEND-ONLY: nothing here calls a real backend. Confirmation produces
  * a mock registration record for the success/pass screen; payment is a
@@ -18,6 +34,23 @@ export type YearOfStudy = "1" | "2" | "3" | "4" | "intern" | "pg";
 
 export interface Participant {
   name: string;
+  /**
+   * Phase 29 (college dropdown): the selected college's id in
+   * `data/colleges.ts`, or `null` when nothing has been chosen yet. This
+   * is the field validation actually checks — a participant can only
+   * reach this state by picking a real entry from `CollegeCombobox`, never
+   * by typing arbitrary text, so a non-null `collegeId` is proof the
+   * selection is one of the 86 official colleges.
+   */
+  collegeId: string | null;
+  /**
+   * The complete official name of the college `collegeId` points to,
+   * kept alongside the id (rather than looked up fresh everywhere it's
+   * displayed) so every existing reader of this field — `ReviewStep`,
+   * `RegistrationSummary`, `RegistrationPass` — keeps working unchanged.
+   * Always set together with `collegeId` by `CollegeCombobox`'s
+   * `onSelect`; never partially typed text.
+   */
   collegeName: string;
   yearOfStudy: YearOfStudy | null;
   phoneNumber: string;
@@ -26,40 +59,25 @@ export interface Participant {
 
 export const EMPTY_PARTICIPANT: Participant = {
   name: "",
+  collegeId: null,
   collegeName: "",
   yearOfStudy: null,
   phoneNumber: "",
   email: "",
 };
 
-export interface TeamMember {
-  id: string;
-  name: string;
-  yearOfStudy?: YearOfStudy;
-  /** Most team events require every member to be from the same college as the registrant — captured per-member in case an event's rules differ. */
-  collegeName?: string;
-}
-
-/** One event the participant has selected, plus any team roster it needs. */
+/**
+ * One event the participant has selected. This is the *individual*
+ * registrant's own selection — never a team roster. A participant can
+ * select a team/duo/squad event exactly like an individual one; this
+ * wizard does not ask them to name teammates, a team name, or a captain
+ * for it. A prior phase's "Details" step (`TeamMember`, `teamMembers`,
+ * `teamName`, `captainId`) collected exactly that roster; it has been
+ * removed entirely, per this file's top doc comment — see
+ * docs/phase-36-registration-flow-simplification-notes.md.
+ */
 export interface EventSelection {
   eventId: string;
-  /** Populated for team/duo/squad events; left empty for individual events. */
-  teamMembers: TeamMember[];
-  /**
-   * Phase 14 (Details step). Team-events-only fields — a display name for
-   * the roster and which member is captain. Neither is a sourced official
-   * fact (no brochure section requires a named "team name" or "captain");
-   * both are this wizard's own way of structuring the roster it collects,
-   * the same kind of UX judgment call `lib/registration/validation.ts`
-   * documents for its own required-field rules. `captainId` references a
-   * `TeamMember.id` in `teamMembers`, or `null` when none is chosen yet
-   * (including right after the captain's own entry was removed — the
-   * reducer clears this rather than leaving it pointing at a member that
-   * no longer exists).
-   */
-  teamName?: string;
-  captainId?: string | null;
-  notes?: string;
 }
 
 export interface PackageSelection {
@@ -113,10 +131,16 @@ export interface ConfirmationDetails {
   paymentStatus: PaymentStatus;
 }
 
+/**
+ * Registration flow simplification phase: the "details" step (team name +
+ * captain + member roster) is gone — see this file's top doc comment and
+ * `EventSelection`'s own doc comment. Five steps remain; "Registration
+ * Complete" is the separate `/success` route, outside this list, exactly
+ * as it was before this phase too.
+ */
 export const REGISTRATION_STEPS = [
   "participant",
   "events",
-  "details",
   "package",
   "review",
   "confirm",
@@ -135,31 +159,26 @@ export const STEP_META: Record<RegistrationStep, StepMeta> = {
   participant: {
     number: "01",
     label: "Participant",
-    description: "Tell us who is entering the registry.",
+    description: "Enter your details to begin your AFFINITY '26 registration.",
   },
   events: {
     number: "02",
     label: "Events",
-    description: "Choose the arenas you wish to compete in.",
-  },
-  details: {
-    number: "03",
-    label: "Details",
-    description: "Team rosters for the events that need one.",
+    description: "Choose the events you wish to participate in.",
   },
   package: {
-    number: "04",
+    number: "03",
     label: "Package",
-    description: "Select a registration package.",
+    description: "Select your AFFINITY '26 registration package.",
   },
   review: {
-    number: "05",
+    number: "04",
     label: "Review",
-    description: "Check every detail before confirming.",
+    description: "Check every detail before proceeding to payment.",
   },
   confirm: {
-    number: "06",
-    label: "Confirm",
+    number: "05",
+    label: "Payment",
     description: "Frontend demo — payment integration pending.",
   },
 };
@@ -168,8 +187,6 @@ export interface RegistrationState {
   step: RegistrationStep;
   participant: Participant;
   selectedEvents: EventSelection[];
-  /** Convenience lookup mirroring selectedEvents, keyed by eventId — some UI (e.g. a details-step form list) is easier to write against a map. Kept in sync by the reducer, never mutated directly. */
-  teamDetails: Record<string, TeamMember[]>;
   package: PackageSelection;
   pricing: PricingSummary | null;
   review: RegistrationReview;
@@ -180,7 +197,6 @@ export const INITIAL_REGISTRATION_STATE: RegistrationState = {
   step: "participant",
   participant: EMPTY_PARTICIPANT,
   selectedEvents: [],
-  teamDetails: {},
   package: EMPTY_PACKAGE,
   pricing: null,
   review: { acceptedTerms: false, reviewedAt: null },

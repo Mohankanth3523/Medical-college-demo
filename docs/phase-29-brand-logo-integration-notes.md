@@ -177,6 +177,17 @@ the phase's final report rather than worked around.
   own JSX parse (which is the authoritative check — this was
   belt-and-suspenders, not a substitute for it).
 
+## Addendum — see Phase 33 for the logo refresh and "Powered by" credit
+
+All five logo files this phase placed under `public/assets/logo/`
+(including `mkzora-logo.jpg`, referenced in the table above) were
+replaced with newer, transparent-background versions in Phase 33, which
+also raised most on-site logo sizes and added a new, separate "Website
+powered by MKZORA" credit to the global footer. `mkzora-logo.jpg`
+specifically no longer exists — it became `mkzora-logo.png`. This file
+is kept as-is as the historical record of what Phase 29 actually shipped
+with; see `docs/phase-33-logo-refresh-notes.md` for the current state.
+
 ## Still-open limitations (unchanged category since Phase 02, specific to this phase)
 
 Reasoned from source and the DOM/CSS APIs' documented behavior, not

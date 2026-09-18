@@ -11,7 +11,6 @@ import type {
   RegistrationStep,
   Participant,
   EventSelection,
-  TeamMember,
 } from "@/types/registration";
 import { INITIAL_REGISTRATION_STATE } from "@/types/registration";
 import type { PackageId } from "@/data/pricing";
@@ -22,9 +21,6 @@ export type RegistrationAction =
   | { type: "UPDATE_PARTICIPANT"; patch: Partial<Participant> }
   | { type: "SELECT_EVENT"; eventId: string }
   | { type: "DESELECT_EVENT"; eventId: string }
-  | { type: "SET_TEAM_MEMBERS"; eventId: string; members: TeamMember[] }
-  | { type: "SET_TEAM_NAME"; eventId: string; teamName: string }
-  | { type: "SET_CAPTAIN"; eventId: string; memberId: string | null }
   | { type: "SET_PACKAGE"; packageId: PackageId }
   | { type: "SET_ACCOMMODATION_REQUESTED"; requested: boolean }
   | { type: "SET_ACCEPTED_TERMS"; accepted: boolean }
@@ -60,63 +56,18 @@ export function registrationReducer(
       if (state.selectedEvents.some((selection) => selection.eventId === action.eventId)) {
         return state;
       }
-      const selection: EventSelection = {
-        eventId: action.eventId,
-        teamMembers: [],
-        teamName: "",
-        captainId: null,
-      };
+      const selection: EventSelection = { eventId: action.eventId };
       return withRecalculatedPricing({
         ...state,
         selectedEvents: [...state.selectedEvents, selection],
-        teamDetails: { ...state.teamDetails, [action.eventId]: [] },
       });
     }
 
     case "DESELECT_EVENT": {
-      const nextTeamDetails = Object.fromEntries(
-        Object.entries(state.teamDetails).filter(([eventId]) => eventId !== action.eventId),
-      );
       return withRecalculatedPricing({
         ...state,
         selectedEvents: state.selectedEvents.filter((selection) => selection.eventId !== action.eventId),
-        teamDetails: nextTeamDetails,
       });
-    }
-
-    case "SET_TEAM_MEMBERS": {
-      const nextSelectedEvents = state.selectedEvents.map((selection) => {
-        if (selection.eventId !== action.eventId) return selection;
-        // If the captain's own row was just removed, clear the pointer
-        // rather than leave it referencing a member that no longer
-        // exists — see the `captainId` doc comment in types/registration.ts.
-        const captainStillPresent =
-          selection.captainId != null && action.members.some((m) => m.id === selection.captainId);
-        return {
-          ...selection,
-          teamMembers: action.members,
-          captainId: captainStillPresent ? selection.captainId : null,
-        };
-      });
-      return withRecalculatedPricing({
-        ...state,
-        selectedEvents: nextSelectedEvents,
-        teamDetails: { ...state.teamDetails, [action.eventId]: action.members },
-      });
-    }
-
-    case "SET_TEAM_NAME": {
-      const nextSelectedEvents = state.selectedEvents.map((selection) =>
-        selection.eventId === action.eventId ? { ...selection, teamName: action.teamName } : selection,
-      );
-      return { ...state, selectedEvents: nextSelectedEvents };
-    }
-
-    case "SET_CAPTAIN": {
-      const nextSelectedEvents = state.selectedEvents.map((selection) =>
-        selection.eventId === action.eventId ? { ...selection, captainId: action.memberId } : selection,
-      );
-      return { ...state, selectedEvents: nextSelectedEvents };
     }
 
     case "SET_PACKAGE":

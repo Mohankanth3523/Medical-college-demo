@@ -1,5 +1,7 @@
 import {
+  GeometricBand,
   GoldDivider,
+  Lantern,
   OrnamentalFrame,
   ScrollReveal,
   SectionContainer,
@@ -33,6 +35,20 @@ import { aboutAffinity, aboutAffinityBrochureVariant, festivalIdentity } from "@
  * Layout is an asymmetric editorial grid — large typography on the
  * left, a bordered "story panel" on the right — instead of a card grid,
  * per the phase's explicit instruction.
+ *
+ * Phase 34: this section (plus Theme, Cause, and EventsTeaser) was
+ * reported as "feels long text only" — a fair read, since its only
+ * non-text elements before this phase were a static starfield and a
+ * near-invisible parchment texture. Two more of this design system's
+ * existing motifs were added: a `GeometricBand` (the Arabian
+ * eight-point-star pattern, new this phase — see that component) as a
+ * thin ornamental strip opening the section, and a small `Lantern`
+ * beside the "The Story" eyebrow, echoing the Hero's own lantern motif
+ * on a smaller scale. No new photography — see
+ * docs/phase-34-theme-atmosphere-notes.md for why real Arabian Nights
+ * imagery isn't used here (the project brief's own motif list is
+ * explicitly vector/illustrative: crescents, stars, lanterns, palace
+ * silhouettes, geometric patterns — not photographs).
  */
 
 /**
@@ -86,13 +102,18 @@ export function Story() {
           is StarField's own documented use-case for exactly this situation. */}
       <StarField animated={false} className="opacity-40" />
 
+      <GeometricBand heightClassName="h-2.5 sm:h-3" className="relative z-10 text-antique-gold/20" />
+
       <SectionContainer as="div" width="wide" verticalPadding className="relative">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-16">
           <ScrollReveal>
             <div className="flex flex-col gap-6">
-              <p className="font-accent text-lg italic tracking-wide text-warm-gold sm:text-xl">
-                The Story
-              </p>
+              <div className="flex items-center gap-3">
+                <Lantern size={30} glow={false} />
+                <p className="font-accent text-lg italic tracking-wide text-warm-gold sm:text-xl">
+                  The Story
+                </p>
+              </div>
               <h2
                 id="story-heading"
                 className="font-display text-5xl font-semibold leading-[1.05] tracking-wide text-ivory sm:text-6xl lg:text-7xl"

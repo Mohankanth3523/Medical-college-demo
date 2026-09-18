@@ -22,11 +22,18 @@ export interface RegistrationLayoutProps {
  * second entry point with different content in the same shell.
  *
  * Phase 29: a small, compact institutional identity row (College, event
- * emblem, Dhruvaas — all at the same small size, no dominant mark here)
- * sits above the heading, per the brief's "optional compact institutional
- * identity" allowance for this page — kept deliberately quiet so the
- * registration form itself stays the focus, and with no digital-partner
- * logos at all ("do not place all logos around the registration form").
+ * emblem, Dhruvaas) sits above the heading, per the brief's "optional
+ * compact institutional identity" allowance for this page — kept
+ * deliberately quiet so the registration form itself stays the focus,
+ * and with no digital-partner logos at all ("do not place all logos
+ * around the registration form").
+ *
+ * Phase 33: raised each mark's height a step (College/Dhruvaas
+ * h-9/h-10 → h-11/h-12, event h-10/h-12 → h-12/h-14) per that session's
+ * "make it big, clearly visible" request, while keeping the event
+ * emblem the largest of the three and keeping this row visibly more
+ * compact than the Hero's — this page's own focus is still the form,
+ * not the identity row above it.
  */
 export function RegistrationLayout({ progress, summary, children }: RegistrationLayoutProps) {
   return (
@@ -36,7 +43,7 @@ export function RegistrationLayout({ progress, summary, children }: Registration
           <BrandLogo
             src={siteBranding.college.logo}
             alt={siteBranding.college.alt}
-            heightClassName="h-9 sm:h-10"
+            heightClassName="h-11 sm:h-12"
             padding="sm"
           />
           {/* Event emblem kept modestly larger than College/Dhruvaas even in
@@ -46,22 +53,22 @@ export function RegistrationLayout({ progress, summary, children }: Registration
           <BrandLogo
             src={siteBranding.event.logo}
             alt={siteBranding.event.alt}
-            heightClassName="h-10 sm:h-12"
+            heightClassName="h-12 sm:h-14"
             padding="sm"
           />
           <BrandLogo
             src={siteBranding.batch.logo}
             alt={siteBranding.batch.alt}
-            heightClassName="h-9 sm:h-10"
+            heightClassName="h-11 sm:h-12"
             padding="sm"
           />
         </div>
 
         <h1 className="mt-2 font-display text-4xl font-semibold tracking-wide text-ivory sm:mt-3 sm:text-5xl lg:text-6xl">
-          The Royal Registry
+          AFFINITY &apos;26 Registration
         </h1>
         <p className="font-accent text-lg italic text-warm-gold sm:text-xl">
-          Your tale has begun. Complete it below.
+          Complete your registration below.
         </p>
       </div>
 

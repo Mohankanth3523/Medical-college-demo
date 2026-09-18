@@ -5,7 +5,6 @@ import { useRegistration } from "@/lib/registration/context";
 import type { EventSelection, RegistrationStep } from "@/types/registration";
 import { getEventById } from "@/data/events";
 import type { AffinityEvent } from "@/types/event";
-import { formatEventFee } from "@/lib/events/formatFee";
 import { YEAR_OF_STUDY_LABEL } from "@/lib/registration/participantLabels";
 import { pgEligibilityConflict } from "@/data/registrationVerification";
 import { termsAndConditions } from "@/data/rules";
@@ -42,7 +41,7 @@ interface ReviewSectionProps {
   children: ReactNode;
 }
 
-/** One "Traveller"/"Events"/"Team"/"Package"/"Fees" panel — a title, an "Edit" button that jumps straight back to the step that owns this data, and whatever read-only recap the section needs. Every section shares this one frame so the five read consistently as one document. */
+/** One "Participant"/"Events"/"Package"/"Total" panel — a title, an "Edit" button that jumps straight back to the step that owns this data, and whatever read-only recap the section needs. Every section shares this one frame so all four read consistently as one document. */
 function ReviewSection({ title, onEdit, children }: ReviewSectionProps) {
   return (
     <OrnamentalFrame padding="sm">
@@ -64,15 +63,22 @@ function ReviewSection({ title, onEdit, children }: ReviewSectionProps) {
 }
 
 /**
- * Step 05 — "Review Your Tale". A read-only recap of every step before
- * it, grouped exactly as the phase brief names them — Traveller / Events
- * / Team / Package / Fees — each with its own "Edit" button that jumps
- * straight back to the step that owns that data (`SET_STEP`, the same
- * action `RegistrationNavigation`'s Back button already uses). Nothing
- * here is computed independently of the steps that came before it: the
- * Fees section reuses the exact same `PricingBreakdown` component
- * `PackageStep` uses (Phase 15), so the total shown here can never drift
- * from the one already computed by `lib/registration/pricing.ts`.
+ * Step 04 — Review Registration. A read-only recap of every step before
+ * it — Participant / Events / Package / Total — each with its own "Edit"
+ * button that jumps straight back to the step that owns that data
+ * (`SET_STEP`, the same action `RegistrationNavigation`'s Back button
+ * already uses). Nothing here is computed independently of the steps that
+ * came before it: the Total section reuses the exact same
+ * `PricingBreakdown` component `PackageStep` uses (Phase 15), so the total
+ * shown here can never drift from the one already computed by
+ * `lib/registration/pricing.ts`.
+ *
+ * Registration flow simplification phase: the old "Team" section (team
+ * name, captain, member roster) is gone along with the "Details" step
+ * that used to populate it — this is a single-participant registration,
+ * and a team event a participant selects is shown exactly like any other
+ * selected event, no roster attached. See
+ * docs/phase-36-registration-flow-simplification-notes.md.
  *
  * "Next" (labelled "Proceed" here — see `RegistrationNavigation`'s
  * `NEXT_LABEL_BY_STEP`) is gated on the acknowledgement checkbox alone
@@ -94,8 +100,6 @@ export function ReviewStep() {
     .map((selection) => ({ selection, event: getEventById(selection.eventId) }))
     .filter((entry): entry is ResolvedSelection => Boolean(entry.event));
 
-  const teamEntries = resolvedEvents.filter(({ event }) => event.type !== "individual");
-
   const selectedPackage = packageSelection.packageId
     ? PACKAGES.find((option) => option.id === packageSelection.packageId)
     : undefined;
@@ -103,14 +107,14 @@ export function ReviewStep() {
   return (
     <div>
       <div className="flex flex-col gap-1">
-        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Review Your Tale</h3>
+        <h3 className="font-display text-2xl font-semibold tracking-wide text-ivory">Review Registration</h3>
         <p className="font-accent text-base italic text-warm-gold">
-          Every page of the registry, laid open before the final seal.
+          Check every detail before proceeding to payment.
         </p>
       </div>
 
       <div className="mt-6 flex flex-col gap-5">
-        <ReviewSection title="Traveller" onEdit={() => goTo("participant")}>
+        <ReviewSection title="Participant" onEdit={() => goTo("participant")}>
           <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
             <div>
               <dt className={LABEL_CLASS}>Full Name</dt>
@@ -158,53 +162,10 @@ export function ReviewStep() {
                     <span className="font-body text-sm font-medium text-ivory">{event.name}</span>
                     <EventBadge variant="category" value={event.category} />
                   </div>
-                  <span className="font-body text-xs text-desert-sand">{formatEventFee(event.fee)}</span>
+                  <EventBadge variant="mode" value={event.mode} />
                 </li>
               ))}
             </ul>
-          )}
-        </ReviewSection>
-
-        <ReviewSection title="Team" onEdit={() => goTo("details")}>
-          {teamEntries.length === 0 ? (
-            <p className="font-body text-sm text-desert-sand/80">
-              No team events selected — every chosen event is an individual entry.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {teamEntries.map(({ event, selection }) => {
-                const captain = selection.teamMembers.find((member) => member.id === selection.captainId);
-                return (
-                  <div key={event.id} className="border border-antique-gold/20 px-4 py-3">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="font-body text-sm font-medium text-ivory">{event.name}</span>
-                      <span className="font-body text-xs text-desert-sand">
-                        {selection.teamMembers.length}{" "}
-                        {selection.teamMembers.length === 1 ? "member" : "members"}
-                      </span>
-                    </div>
-                    <p className="mt-1 font-body text-xs text-desert-sand">
-                      Team name: <span className="text-ivory">{selection.teamName?.trim() || "—"}</span>
-                    </p>
-                    <p className="mt-0.5 font-body text-xs text-desert-sand">
-                      Captain: <span className="text-ivory">{captain?.name.trim() || "—"}</span>
-                    </p>
-                    {selection.teamMembers.length > 0 && (
-                      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                        {selection.teamMembers.map((member) => (
-                          <li key={member.id} className="font-body text-xs text-desert-sand">
-                            {member.name.trim() || "—"}
-                            {member.id === selection.captainId && (
-                              <span className="ml-1 text-antique-gold">(Captain)</span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           )}
         </ReviewSection>
 
@@ -221,7 +182,7 @@ export function ReviewStep() {
           )}
         </ReviewSection>
 
-        <ReviewSection title="Fees" onEdit={() => goTo("package")}>
+        <ReviewSection title="Total" onEdit={() => goTo("package")}>
           <PricingBreakdown pricing={pricing} showHeading={false} bare />
         </ReviewSection>
       </div>

@@ -12,17 +12,18 @@ export interface BrandLogoProps {
   heightClassName: string;
   /**
    * `"plaque"` (default) — a small ivory card with a thin antique-gold
-   * hairline border and a soft shadow around the mark. Every one of the
-   * five supplied logo files has a baked-in near-white/white background
-   * (verified via pixel sampling, not assumed) and several also carry a
-   * large blank margin inside the file itself — placed directly on this
-   * site's dark navy surfaces with no framing at all, that would read as
-   * a stray, ill-fitting white rectangle (exactly what the brief warns
-   * against). The plaque is deliberately read as a small royal seal/
-   * medallion — ivory + a hairline gold rule fits the Arabian Nights
+   * hairline border and a soft shadow around the mark. The five logo
+   * files this originally shipped with (Phase 29) each had a baked-in
+   * near-white/white background, so this plaque doubled as a fix for
+   * that; the Phase 33 refresh replaced all five with genuinely
+   * transparent PNGs (verified via pixel sampling, not assumed), so that
+   * specific problem no longer exists. The plaque stays as this site's
+   * own deliberate presentation regardless — read as a small royal seal/
+   * medallion, ivory + a hairline gold rule fitting the Arabian Nights
    * material language already used for `OrnamentalFrame`/cards elsewhere
-   * — rather than a generic "logo box." It only ever changes the
-   * *container*; the logo image inside is never touched.
+   * — rather than a generic "logo box," and it now frames a genuinely
+   * transparent mark instead of masking a white one. It only ever
+   * changes the *container*; the logo image inside is never touched.
    *
    * `"bare"` — no card, just the image. For contexts that already sit on
    * a light surface (e.g. print styles), or a caller building its own

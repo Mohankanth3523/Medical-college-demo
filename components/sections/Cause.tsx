@@ -1,4 +1,4 @@
-import { GoldDivider, OrnamentalFrame, ScrollReveal, SectionContainer } from "@/components/design-system";
+import { Crescent, GeometricBand, GoldDivider, OrnamentalFrame, ScrollReveal, SectionContainer } from "@/components/design-system";
 import { aboutCause } from "@/data/content";
 
 /**
@@ -26,6 +26,15 @@ import { aboutCause } from "@/data/content";
  * (concentric rings + a narrow gradient beam, both static, no per-scroll
  * animation) rather than anything literal or dramatized, per the phase's
  * explicit "respectful... not exploitative or overly dramatic."
+ *
+ * Phase 34: reported alongside Story/Theme/EventsTeaser as "feels long
+ * text only." This section's own restraint is deliberate (see above), so
+ * it gets the lightest touch of the four rather than matching Theme's
+ * lantern pair — a small `Crescent` beside the eyebrow (this design
+ * system's quietest recurring mark, already used the same way in
+ * `Theme`/`Footer`/the nav wordmark) and one `GeometricBand` closing the
+ * section, not opening it, so it never competes with `LightAperture` for
+ * the first thing a reader's eye meets.
  */
 
 /**
@@ -71,9 +80,12 @@ export function Cause() {
       <SectionContainer as="div" width="narrow" verticalPadding className="relative z-10">
         <ScrollReveal>
           <OrnamentalFrame padding="lg" className="flex flex-col items-center gap-6 text-center">
-            <p className="font-accent text-lg italic tracking-wide text-warm-gold sm:text-xl">
-              The Cause &middot; {aboutCause.cause}
-            </p>
+            <div className="flex items-center gap-2 font-accent text-lg italic tracking-wide text-warm-gold sm:text-xl">
+              <Crescent size={18} className="shrink-0" />
+              <span>
+                The Cause &middot; {aboutCause.cause}
+              </span>
+            </div>
 
             <h2
               id="cause-heading"
@@ -95,6 +107,8 @@ export function Cause() {
                 <span className="text-antique-gold">&ldquo;{aboutCause.connectedEvent.theme}.&rdquo;</span>
               </p>
             </blockquote>
+
+            <GeometricBand heightClassName="h-2" className="mt-2 w-full max-w-xs text-antique-gold/25" />
           </OrnamentalFrame>
         </ScrollReveal>
       </SectionContainer>
