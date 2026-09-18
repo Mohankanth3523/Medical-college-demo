@@ -65,6 +65,7 @@ export function ParticipantStep() {
 
   const fieldRefs: Record<FieldName, RefObject<HTMLInputElement | HTMLSelectElement | null>> = {
     name: nameRef,
+    collegeId: collegeRef,
     collegeName: collegeRef,
     yearOfStudy: yearRef,
     phoneNumber: phoneRef,
