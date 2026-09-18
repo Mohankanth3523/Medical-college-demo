@@ -14,6 +14,7 @@ import type {
 } from "@/types/registration";
 import { INITIAL_REGISTRATION_STATE } from "@/types/registration";
 import type { PackageId } from "@/data/pricing";
+import { getEventById } from "@/data/events";
 import { calculatePricing } from "./pricing";
 
 export type RegistrationAction =
@@ -116,8 +117,33 @@ export function registrationReducer(
     case "RESET":
       return INITIAL_REGISTRATION_STATE;
 
-    case "HYDRATE":
-      return action.state;
+    case "HYDRATE": {
+      // Phase 39 (remove Online Events completely): a registration begun
+      // before this phase could have persisted a `selectedEvents` entry
+      // for one of the 9 online-cultural events this phase excluded from
+      // `allEvents` (data/events/index.ts) — that id no longer resolves
+      // via `getEventById`. Every step component that *renders*
+      // `selectedEvents` already maps through `getEventById` and drops
+      // unresolvable ids (EventsStep/ReviewStep/RegistrationSummary/
+      // RegistrationPass), so a stale id was never going to crash
+      // anything — but it would otherwise sit in `state.selectedEvents`
+      // (and get re-persisted to localStorage) forever, silently invalid.
+      // The phase brief is explicit that a stale online event must be
+      // "removed safely from the active registration selection," not just
+      // hidden from view, so hydration is where that actually happens —
+      // once, here, rather than duplicating the same filter in every
+      // consumer. `withRecalculatedPricing` is a no-op either way (see
+      // ./pricing.ts — the total only ever depends on the selected
+      // package, never on which events are selected).
+      const hydrated = action.state;
+      const sanitizedSelectedEvents = hydrated.selectedEvents.filter((selection) =>
+        Boolean(getEventById(selection.eventId)),
+      );
+      return withRecalculatedPricing({
+        ...hydrated,
+        selectedEvents: sanitizedSelectedEvents,
+      });
+    }
 
     default:
       return state;

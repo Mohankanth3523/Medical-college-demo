@@ -1,6 +1,34 @@
 # AFFINITY '26 — Frontend
 
-Phase 36 deliverable: the registration flow simplification — this is a
+Phase 40 deliverable: the "Powered by MKZORA" navbar credit (Phase 37) is
+now visible in the collapsed/hamburger header bar at every phone and
+tablet width — it was previously nested behind a combined `lg:flex` +
+`xl:flex` visibility condition, so it never rendered below 1280px outside
+the mobile overlay. A second, compact, label-less MKZORA badge now sits
+beside the hamburger trigger, visible below 1024px; the existing desktop
+credit and the mobile overlay's own copy are untouched. See
+`docs/phase-40-mobile-navbar-logo-notes.md`.
+
+Phase 39 deliverable: the Online Events category is gone from every
+participant-facing surface — Events Explorer, registration wizard, search,
+event count, homepage stat tile, the Cause section's event reference, and
+three now-inapplicable rules bullets. The 9 `online-cultural` event
+records themselves stay intact in `data/events/online.ts` for reference,
+just excluded from `allEvents`; the 4 `online-esports` direct-contact
+events (E-Football, FIFA, PUBG, Free Fire) and every other confirmed
+direct-contact event remain fully visible, unchanged. See
+`docs/phase-39-remove-online-events-notes.md`.
+
+Phase 38 deliverable: the Participant step's College Name field gained a
+directly-requested entry ("SRM Medical College, Chennai," `college-087`
+in `data/colleges.ts` — distinct from the existing Trichy SRM entry) and
+a trailing "Others" option for a participant whose college genuinely
+isn't in the list, which swaps the field to a plain text input for that
+one case. Phase 37 added a small "Powered by MKZORA" credit to the
+global navbar (desktop, beside "Register"; and in the mobile overlay
+menu), reusing the same verified `siteBranding.poweredBy` identity
+already credited in the footer — no new brand, asset, or fact. Phase 36
+(still the current registration model) simplified the wizard: this is a
 COLLEGE MEDICAL FEST registration website, so the wizard now models ONE
 STUDENT = ONE REGISTRATION. The old "Assemble Your Company" team-roster
 step (team name, captain, member-by-member roster) is gone entirely; a
@@ -17,9 +45,11 @@ source-of-truth rules.
 
 - ✅ Next.js (App Router) + TypeScript + Tailwind project structure
 - ✅ Centralized, typed data layer (`data/`) transcribed from
-  `docs/affinity-content-truth.md` — 56 events across sports, onstage/
-  offstage culturals, online culturals, and esports, plus pricing, rules,
-  and contacts
+  `docs/affinity-content-truth.md` — 47 participant-facing events across
+  sports, onstage/offstage culturals, and esports, plus pricing, rules,
+  and contacts. A further 9 online-cultural events are retained internally
+  in `data/events/online.ts` but excluded from every participant-facing
+  surface — see Phase 39 below
 - ✅ Registration wizard state model (`types/registration.ts`,
   `lib/registration/`) — participant, selectedEvents, teamDetails,
   package, pricing, review, confirmation — with a reducer, localStorage
@@ -727,6 +757,68 @@ source-of-truth rules.
   `docs/phase-36-registration-flow-simplification-notes.md` for the full
   before/after and every renamed string.
 
+- ✅ **Phase 37 — MKZORA logo in the navbar**: `Navbar` now carries a
+  small "Powered by MKZORA" credit — the caption plus `BrandLogo` in its
+  default ivory "plaque" variant (the mark's own artwork is solid black
+  and needs a light card to read against the navbar's transparent/dark
+  background) — shown on desktop (`xl:` breakpoint and up, beside the
+  "Register" button) and in the mobile menu overlay (centered, below
+  "Register"). It reuses `siteBranding.poweredBy` from `data/branding.ts`
+  exactly as `Footer`'s existing sitewide credit does; no brand data, no
+  logo file, and no other component changed. This reverses one specific,
+  previously documented Phase 33 decision to keep third-party marks out
+  of the primary nav — done here on an explicit follow-up request. See
+  `docs/phase-37-navbar-mkzora-credit-notes.md`.
+
+- ✅ **Phase 38 — SRM Medical College, Chennai + an "Others" college
+  option**: `data/colleges.ts` gained `college-087` ("SRM Medical
+  College, Chennai") — a directly-requested addition, not part of the
+  Phase 30 86-entry source document, and distinct from the existing
+  `college-086` ("Trichy SRM Medical College Hospital & Research Centre,
+  Trichy"); the array's build-time integrity check now expects 87
+  entries. `CollegeCombobox` also gained a trailing "Others" row, always
+  present, for a participant whose college genuinely isn't listed;
+  picking it (via the new `OTHER_COLLEGE_ID` sentinel) swaps
+  `ParticipantStep`'s College Name field to a plain text input instead —
+  a deliberate, narrow exception to Phase 30's "must select, not type"
+  rule, with its own length validation in
+  `lib/registration/validation.ts`. See
+  `docs/phase-38-college-list-addition-notes.md`.
+
+- ✅ **Phase 39 — Remove Online Events completely**: the `online-cultural`
+  category (9 events) no longer appears anywhere participant-facing —
+  `data/events/index.ts`'s `allEvents` excludes it (the records themselves
+  stay in `data/events/online.ts`, untouched); `lib/events/eventGroups.ts`
+  dropped the "Online" filter tab, leaving `[ALL EVENTS][SPORTS]
+  [CULTURALS]`; `EventsStep.tsx`'s entire "All/Offline/Online" mode-tab bar
+  was removed (it would have had nothing left to filter); `EventsTeaser`'s
+  homepage stat tile swapped "Online" for "Esports" (4 events, correctly
+  distinct from the removed 9); `Cause.tsx` no longer renders its blockquote
+  naming the now-removed "online Pencil Painting" event; `data/rules.ts`
+  lost three bullets specifically about the removed category. The 4
+  `online-esports` direct-contact events (E-Football, FIFA, PUBG, Free
+  Fire) and all other confirmed direct-contact events (Chess, Badminton,
+  Track & Field group, Shot Put, Discus Throw, Javelin, Short Film, Sollal
+  Vel) remain fully visible and unchanged — `registrationMode` (not
+  `mode`/`category`) is what actually governs the split, so nothing on
+  that confirmed list was swept up by mistake. `lib/registration/state.ts`'s
+  `HYDRATE` action now also strips any stale removed-event id from
+  persisted `localStorage` state on load. See
+  `docs/phase-39-remove-online-events-notes.md`.
+
+- ✅ **Phase 40 — Mobile navbar logo responsiveness fix**: the Phase 37
+  "Powered by MKZORA" credit was nested behind a combined `lg:flex` +
+  `xl:flex` visibility condition, so it never rendered in the collapsed
+  header bar below 1280px — reachable only by opening the mobile overlay,
+  not visible in the navbar itself on any phone or tablet. `Navbar.tsx`
+  now also renders a second, compact, label-less MKZORA badge (`h-4
+  sm:h-5`, same ivory-plaque `BrandLogo`) directly beside the hamburger
+  trigger, visible at every width below 1024px. The existing `xl:`-gated
+  desktop credit and the mobile overlay's own copy are both untouched —
+  true desktop (≥1280px) looks exactly as before, and the logo stays
+  visible while the overlay is open. See
+  `docs/phase-40-mobile-navbar-logo-notes.md`.
+
 ## ⚠️ Verification could not be fully automated in this session
 
 This project was authored in a cloud sandbox whose outbound network
@@ -799,17 +891,35 @@ dependencies), re-run at the end of every phase including Phase 03:
   → select a team-type event → package → review) through `tsx`, at
   runtime, to confirm the reducer never touches a `teamDetails` key and
   every `selectedEvents` entry is exactly `{ eventId }` — see
-  docs/phase-36-registration-flow-simplification-notes.md.
-- Every `.ts`/`.tsx` file in the project — **89 files as of Phase 36**
-  (90 through Phase 35; Phase 36 deleted exactly one file,
-  `components/registration/DetailsStep.tsx`, and added none) — parses as
-  syntactically valid TypeScript/JSX via `esbuild`.
-- Every `@/...` import in the codebase (**174 as of Phase 36**, down from
-  184 through Phase 35 — Phase 36 deleted `DetailsStep.tsx`, which alone
-  carried nine `@/...` imports, and `app/register/page.tsx` lost its
-  tenth, the now-removed `import { DetailsStep }` line; no new `@/...`
-  import was added this phase) resolves to a real file on disk (checked
-  by script, not by eye).
+  docs/phase-36-registration-flow-simplification-notes.md. Phase 37
+  touched only `Navbar.tsx`, a component (not on this strict pure-logic
+  list), so the count stayed at 29. Phase 38 edited `data/colleges.ts`,
+  `lib/registration/validation.ts`, and `types/registration.ts` in
+  place — all three already on this list — so the count is still
+  unchanged at **29 files as of Phase 38**, zero errors. Phase 38
+  additionally ran `data/colleges.ts`'s own integrity check,
+  `collegeSearch.ts`, and `validateParticipant`'s new "Others" branches
+  through `tsx` at runtime — see
+  docs/phase-38-college-list-addition-notes.md. Phase 39 edited
+  `data/events/index.ts`, `lib/events/eventGroups.ts`, and
+  `lib/registration/state.ts` in place — all three already on this list —
+  so the count is still unchanged at **29 files as of Phase 39**, zero
+  errors. Phase 39 additionally ran `allEvents`/`eventCounts`/
+  `EVENT_GROUP_CATEGORIES` and a search simulation, plus the `HYDRATE`
+  reducer case against a simulated pre-Phase-39 persisted state carrying a
+  stale removed-event id, through `tsx` at runtime — see
+  docs/phase-39-remove-online-events-notes.md. Phase 40 touched only
+  `Navbar.tsx` — a `.tsx` component with `react`/`next` imports, never on
+  this pure-logic list, same as Phase 37 — so the count stayed at **29
+  files as of Phase 40**, zero errors.
+- Every `.ts`/`.tsx` file in the project — **89 files as of Phase 40**
+  (unchanged since Phase 36 — Phases 37/38/39/40 only edited files in
+  place, added none) — parses as syntactically valid TypeScript/JSX via
+  `esbuild`.
+- Every `@/...` import in the codebase (**179 as of Phase 40**, unchanged
+  from Phase 39 — Phase 40 added no new import; `BrandLogo`/`siteBranding`
+  were already imported into `Navbar.tsx` since Phase 37) resolves to a
+  real file on disk (checked by script, not by eye).
 - Phase 09 brought the full `data/events/*` layer (all ~56 event
   records) into the strict `tsc --noEmit` pass for the first time,
   alongside `lib/events/formatFee.ts`; Phase 10 added

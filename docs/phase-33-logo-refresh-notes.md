@@ -136,13 +136,20 @@ a participant's own document, which the original brief explicitly
 warned against. Growing everything else while leaving this one page's
 restraint in place is a deliberate, recorded choice, not an oversight.
 
-The primary `Navbar` was also left untouched — it has never rendered any
-image logos (it's a text wordmark + nav links only), and the request
-didn't ask for one to be added there. A third-party "powered by" mark
-in primary navigation would also read as competing with the site's own
-identity in the one spot every page's first impression comes from —
-the footer (see below) is the established, lower-key place this kind of
-credit belongs.
+The primary `Navbar` was also left untouched at the time — it had never
+rendered any image logos (it was a text wordmark + nav links only), and
+the request didn't ask for one to be added there. A third-party
+"powered by" mark in primary navigation would also read as competing
+with the site's own identity in the one spot every page's first
+impression comes from — the footer (see below) was, at the time, the
+only place this kind of credit appeared.
+
+**Superseded in Phase 37**: an explicit follow-up request asked for this
+exact logo to be placed in the navbar, reversing this one call. `Navbar`
+now carries its own small "Powered by MKZORA" credit (desktop `xl:`+ and
+the mobile overlay), reusing this same `siteBranding.poweredBy` entry —
+see docs/phase-37-navbar-mkzora-credit-notes.md. This footer credit is
+unchanged.
 
 ## The sitewide "Powered by MKZORA" credit
 

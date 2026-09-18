@@ -9,6 +9,7 @@ import { pgEligibilityConflict } from "@/data/registrationVerification";
 import { YEAR_OF_STUDY_OPTIONS } from "@/lib/registration/participantLabels";
 import { EventBadge } from "@/components/design-system";
 import { CollegeCombobox } from "@/components/registration/CollegeCombobox";
+import { OTHER_COLLEGE_ID } from "@/data/colleges";
 
 type FieldName = keyof ParticipantErrors;
 
@@ -44,11 +45,24 @@ function borderClass(hasError: boolean): string {
  * docs/phase-12-participant-step-notes.md.
  *
  * Phase 29: College Name is now `CollegeCombobox`, not a free-text
- * `<input>` — the participant must pick one of the 86 official colleges
- * in `data/colleges.ts`; nothing else is a valid value (see
+ * `<input>` — the participant must pick one of the official colleges in
+ * `data/colleges.ts`; nothing else is a valid value (see
  * `lib/registration/validation.ts`). `collegeRef` still gets focused on a
  * failed submit exactly as before, via the combobox's own `inputRef` prop
  * forwarding to its internal text input.
+ *
+ * Phase 38: `CollegeCombobox` now offers a trailing "Others" option for a
+ * participant whose college genuinely isn't in the list (which also
+ * gained one directly-requested entry, `college-087`, this phase — see
+ * `data/colleges.ts`). Picking "Others" doesn't hand this step a fake
+ * `College`; instead `participant.collegeId` is set to the
+ * `OTHER_COLLEGE_ID` sentinel and this field swaps to a plain text
+ * `<input>` so the participant can type their own college name into
+ * `collegeName`, with a small link back to the searchable list. This is a
+ * deliberate, narrow exception to "must select, not type" (Phase 30): the
+ * participant is still choosing an explicit "not on this list" state
+ * first, rather than the field silently accepting arbitrary text by
+ * default.
  */
 export function ParticipantStep() {
   const { state, dispatch } = useRegistration();
@@ -65,7 +79,6 @@ export function ParticipantStep() {
 
   const fieldRefs: Record<FieldName, RefObject<HTMLInputElement | HTMLSelectElement | null>> = {
     name: nameRef,
-    collegeId: collegeRef,
     collegeName: collegeRef,
     yearOfStudy: yearRef,
     phoneNumber: phoneRef,
@@ -143,20 +156,56 @@ export function ParticipantStep() {
             College Name <span aria-hidden="true" className="text-error-rose">*</span>
           </label>
           <div className="mt-1.5">
-            <CollegeCombobox
-              id="participant-college"
-              inputRef={collegeRef}
-              value={participant.collegeId}
-              onSelect={(college) =>
-                dispatch({
-                  type: "UPDATE_PARTICIPANT",
-                  patch: { collegeId: college.id, collegeName: college.name },
-                })
-              }
-              onBlur={() => markTouched("collegeName")}
-              ariaInvalid={isShown("collegeName")}
-              ariaDescribedBy={isShown("collegeName") ? errorId("collegeName") : undefined}
-            />
+            {participant.collegeId === OTHER_COLLEGE_ID ? (
+              <div className="flex flex-col gap-2">
+                <input
+                  id="participant-college"
+                  ref={collegeRef}
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Enter your college name"
+                  value={participant.collegeName}
+                  onChange={(e) =>
+                    dispatch({ type: "UPDATE_PARTICIPANT", patch: { collegeName: e.target.value } })
+                  }
+                  onBlur={() => markTouched("collegeName")}
+                  aria-required="true"
+                  aria-invalid={isShown("collegeName") || undefined}
+                  aria-describedby={isShown("collegeName") ? errorId("collegeName") : undefined}
+                  className={`${INPUT_CLASS} ${borderClass(isShown("collegeName"))}`}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    dispatch({ type: "UPDATE_PARTICIPANT", patch: { collegeId: null, collegeName: "" } })
+                  }
+                  className="w-fit font-body text-xs uppercase tracking-wide text-antique-gold underline decoration-antique-gold/40 underline-offset-4 transition-colors duration-fast hover:text-warm-gold"
+                >
+                  Choose from the list instead
+                </button>
+              </div>
+            ) : (
+              <CollegeCombobox
+                id="participant-college"
+                inputRef={collegeRef}
+                value={participant.collegeId}
+                onSelect={(college) =>
+                  dispatch({
+                    type: "UPDATE_PARTICIPANT",
+                    patch: { collegeId: college.id, collegeName: college.name },
+                  })
+                }
+                onSelectOther={() =>
+                  dispatch({
+                    type: "UPDATE_PARTICIPANT",
+                    patch: { collegeId: OTHER_COLLEGE_ID, collegeName: "" },
+                  })
+                }
+                onBlur={() => markTouched("collegeName")}
+                ariaInvalid={isShown("collegeName")}
+                ariaDescribedBy={isShown("collegeName") ? errorId("collegeName") : undefined}
+              />
+            )}
           </div>
           {isShown("collegeName") && (
             <p id={errorId("collegeName")} role="alert" className="mt-1.5 font-body text-xs text-error-rose">

@@ -12,12 +12,16 @@
  * / `data/registrationVerification.ts`, not invented here.
  */
 import type { EventSelection, Participant, PackageSelection, RegistrationReview } from "@/types/registration";
+import { OTHER_COLLEGE_ID } from "@/data/colleges";
 
 export type ParticipantErrors = Partial<Record<keyof Participant, string>>;
 
 const NAME_MIN = 2;
 const NAME_MAX = 80;
 const EMAIL_MAX = 254;
+/** Phase 38: only applies to the manually-typed "Others" college name — every listed college's own name is already a verified, correctly-lengthed string, so this never constrains a real selection. */
+const COLLEGE_MIN = 3;
+const COLLEGE_MAX = 120;
 
 /** 10-digit Indian mobile number, optionally prefixed with +91/91/0, optional spaces/hyphens — stripped before testing. */
 const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
@@ -49,7 +53,25 @@ export function validateParticipant(participant: Participant): ParticipantErrors
   // arbitrary text." The collegeName.trim() check is a belt-and-suspenders
   // guard against a corrupted/hand-edited localStorage record that somehow
   // has an id but an empty name.
-  if (!participant.collegeId || !participant.collegeName.trim()) {
+  //
+  // Phase 38: the one exception is OTHER_COLLEGE_ID — the participant
+  // explicitly chose "my college isn't listed" (see CollegeCombobox/
+  // ParticipantStep), so collegeName is now a manually-typed value rather
+  // than one sourced from data/colleges.ts, and needs its own length
+  // check the way `name` above does (it was never a free-text field
+  // before this phase, so there was nothing to check).
+  if (!participant.collegeId) {
+    errors.collegeName = "Please select your college.";
+  } else if (participant.collegeId === OTHER_COLLEGE_ID) {
+    const manualCollegeName = participant.collegeName.trim();
+    if (!manualCollegeName) {
+      errors.collegeName = "Enter your college name.";
+    } else if (manualCollegeName.length < COLLEGE_MIN) {
+      errors.collegeName = `College name must be at least ${COLLEGE_MIN} characters.`;
+    } else if (manualCollegeName.length > COLLEGE_MAX) {
+      errors.collegeName = `College name must be under ${COLLEGE_MAX} characters.`;
+    }
+  } else if (!participant.collegeName.trim()) {
     errors.collegeName = "Please select your college.";
   }
 

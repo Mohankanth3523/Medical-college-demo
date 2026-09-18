@@ -35,10 +35,11 @@ export interface EventsExplorerProps {
  * Fire, PUBG, E-Football, FIFA, Short Film, Sollal Vel — separate entry
  * fee and process, handled by the event's own in-charge) — rather than
  * one flat grid, so the distinction is visible while browsing, not just
- * inside a card's own details modal. The existing category tabs
- * (All/Sports/Culturals/Online) and search keep filtering across both
- * sections exactly as before; nothing about `EVENT_GROUPS`/
- * `EVENT_GROUP_CATEGORIES` changed. Every card still opens the same
+ * inside a card's own details modal. The category tabs (All/Sports/
+ * Culturals — Phase 39 removed the fourth "Online" tab along with the
+ * Online Events category site-wide; see
+ * docs/phase-39-remove-online-events-notes.md) and search keep filtering
+ * across both sections exactly as before. Every card still opens the same
  * `EventDetailsModal` via `onViewDetails` regardless of section — this
  * page has never had a selection/payment mechanism of its own, so
  * `EventCard`'s direct-contact footer swap (see its own doc comment)

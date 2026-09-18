@@ -5,6 +5,19 @@
  * (and any per-category "general rules" panel in the Events Explorer) can
  * render each block independently. Nothing here is invented — every
  * bullet traces to the T&C docx and/or the brochure's general-rules pages.
+ *
+ * Phase 39 (remove Online Events completely) removed three bullets that
+ * were specifically about the now-removed Online Events category:
+ * `culturalsGeneralRules` lost "Online-event participants receive an
+ * e-certificate." and "Last date for online-entry submission: 26
+ * September 2026." (the latter judged, not unambiguous — see
+ * docs/phase-39-remove-online-events-notes.md for why); `restrictions`
+ * lost "Bot likes / artificial engagement are banned across every
+ * Instagram-likes-judged online event." No other bullet was touched —
+ * general rules that happen to name a now-removed event (e.g. the
+ * AI-generated-content restriction naming English/Tamil Poetry) were
+ * deliberately left as-is, since they're sourced content unrelated to the
+ * word "online," not part of that phase's scope.
  */
 
 export interface RuleSection {
@@ -88,13 +101,11 @@ export const culturalsGeneralRules: RuleSection = {
     "Each member must show a softcopy of their college ID and Affinity tag to event in-charges before the event starts.",
     "Obscenity, plagiarism, or vulgarity is not entertained and leads to disqualification.",
     "Participant name(s) and event coordinator name/contact must be provided at registration.",
-    "Online-event participants receive an e-certificate.",
     "Bot likes are not encouraged and lead to disqualification.",
     "A team may be denied or disqualified for misbehaviour.",
     "Damage to college property is dealt with severely.",
     "Smoking/alcohol/narcotics use leads to disqualification and is strictly prohibited.",
     "Prize amounts are subject to change according to the number of entries.",
-    "Last date for online-entry submission: 26 September 2026.",
   ],
 };
 
@@ -124,7 +135,6 @@ export const restrictions: RuleSection = {
     "Anti-ragging/harassment/bullying/discrimination policy, with immediate disciplinary action.",
     "Decency/anti-vulgarity requirements across performance events — obscenity or vulgarity disqualifies.",
     "AI-generated content is banned in Short Film, Movie Scene Recreation, English Poetry, and Tamil Poetry — but explicitly required (with credited tools/prompts) in the AI Poster event.",
-    "Bot likes / artificial engagement are banned across every Instagram-likes-judged online event.",
     "Esports: emulators and cheat tools (aimbot/trigger bot/ESP) are banned and disqualify.",
     "No liability for participants' personal belongings, injuries, or accidents from participant negligence.",
     "The host college does not compete in its own sports tournament.",

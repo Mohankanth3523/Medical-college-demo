@@ -17,10 +17,16 @@ import { aboutCause } from "@/data/content";
  *   phase's "do not invent" list is a list of things this component
  *   structurally cannot say, not a list of edits made to hide them.
  * - `connectedEvent` — the one place the source documents tie the cause
- *   to a specific piece of programming: the online Pencil Painting
- *   event's own stated theme. Rendered as a quiet aside, not a second
- *   headline, so it reads as "here's where the theme already shows up
- *   this year" rather than a second competing claim.
+ *   to a specific piece of programming: the Pencil Painting event's own
+ *   stated theme. Phase 39 (remove Online Events completely) stopped
+ *   rendering this as a blockquote here — Pencil Painting is one of the
+ *   `onlineCulturalEvents` (data/events/online.ts) that phase removed
+ *   from every participant-facing surface, so a promotional aside
+ *   pointing at an event a participant can no longer find or select
+ *   would be actively misleading. `aboutCause.connectedEvent` itself is
+ *   untouched in data/content.ts (it's sourced content, not deleted —
+ *   see that field's own doc comment) — this component just no longer
+ *   surfaces it. See docs/phase-39-remove-online-events-notes.md.
  *
  * Visually restrained on purpose — a single soft aperture-of-light motif
  * (concentric rings + a narrow gradient beam, both static, no per-scroll
@@ -99,14 +105,6 @@ export function Cause() {
             <p className="max-w-2xl font-body text-base leading-relaxed text-desert-sand sm:text-lg">
               {aboutCause.description}
             </p>
-
-            <blockquote className="mt-2 w-full max-w-xl border-l-2 border-antique-gold/40 pl-5 text-left sm:mt-4">
-              <p className="font-accent text-base italic leading-relaxed text-ivory sm:text-lg">
-                This year&apos;s theme carries into the events too — the online{" "}
-                {aboutCause.connectedEvent.name} event asks entrants to imagine{" "}
-                <span className="text-antique-gold">&ldquo;{aboutCause.connectedEvent.theme}.&rdquo;</span>
-              </p>
-            </blockquote>
 
             <GeometricBand heightClassName="h-2" className="mt-2 w-full max-w-xs text-antique-gold/25" />
           </OrnamentalFrame>

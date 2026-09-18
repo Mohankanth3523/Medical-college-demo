@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { SectionContainer } from "@/components/design-system/SectionContainer";
 import { GoldButton } from "@/components/design-system/GoldButton";
 import { Crescent } from "@/components/design-system/Crescent";
+import { BrandLogo } from "@/components/design-system/BrandLogo";
+import { siteBranding } from "@/data/branding";
 
 /**
  * Phase 05 — global navigation.
@@ -15,6 +17,46 @@ import { Crescent } from "@/components/design-system/Crescent";
  * and `/#cause-heading` point at the two `<h2 id="...">` elements the
  * Phase 02 landing-page placeholder already has (app/page.tsx). No link
  * here points at a page or section that doesn't exist yet.
+ *
+ * Phase 37 — a small "Powered by MKZORA" credit was added (desktop, `xl:`
+ * and up, beside the Register button; and in the mobile overlay, below
+ * it) using `siteBranding.poweredBy` — the same identity/asset Footer's
+ * own sitewide credit already uses, not a new logo file. Phase 33
+ * deliberately left the primary nav without any third-party mark,
+ * reasoning it would compete with the site's own identity there; this
+ * phase is a direct, explicit request to reverse that one call. The
+ * credit stays in `BrandLogo`'s default "plaque" (ivory card) variant —
+ * same reason Footer uses it and never "bare" — because the mark's own
+ * artwork is solid black and would vanish against this header's
+ * transparent/`midnight` background otherwise. It is sized and placed to
+ * stay clearly secondary to the "AFFINITY '26" wordmark at the far left,
+ * matching `data/branding.ts`'s documented brand hierarchy (event mark
+ * primary; digital-partner credits tertiary, never competing). See
+ * docs/phase-37-navbar-mkzora-credit-notes.md.
+ *
+ * Phase 40 — root cause of "MKZORA isn't visible on mobile": the Phase 37
+ * credit above was nested inside two collapsed wrappers — `hidden
+ * lg:flex` (the Register-button group) containing `hidden xl:flex` (the
+ * credit itself) — so at every width below 1280px it was `display: none`
+ * in the *collapsed* header bar. It only ever became reachable by opening
+ * the full-screen mobile overlay (`lg:hidden`'s hamburger trigger), which
+ * isn't the same as "visible in the navbar." This wasn't a clipping/
+ * z-index/overflow bug — the element was never rendered visible at those
+ * widths at all.
+ *
+ * Fix: a second, compact, label-less MKZORA badge (`h-4 sm:h-5`, `bare`
+ * variant is *not* used — still the ivory plaque, same reasoning as
+ * above) now sits directly beside the hamburger trigger, in its own
+ * `flex lg:hidden` group — visible at every width the trigger itself is
+ * visible (< 1024px, i.e. every phone and the 768–834px tablet range this
+ * phase's brief calls out), never requiring the overlay to open. The
+ * existing `xl:`-gated "Powered by MKZORA" credit next to Register is
+ * completely untouched — true desktop widths (≥1024px, where the full nav
+ * links + Register already replace the hamburger) look exactly as they
+ * did before this phase. The mobile overlay's own copy (below) is also
+ * untouched — it's what keeps MKZORA visible while the overlay is open
+ * and covering this compact badge. See
+ * docs/phase-40-mobile-navbar-logo-notes.md.
  */
 const NAV_LINKS = [
   { href: "/#story-heading", label: "Story" },
@@ -162,32 +204,63 @@ export function Navbar() {
             </ul>
           </nav>
 
-          <div className="hidden lg:block">
+          <div className="hidden items-center gap-5 lg:flex">
+            <div className="hidden items-center gap-2 xl:flex">
+              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-ivory/50">
+                Powered by
+              </span>
+              <BrandLogo
+                src={siteBranding.poweredBy.logo}
+                alt={siteBranding.poweredBy.alt}
+                heightClassName="h-5"
+                padding="sm"
+              />
+            </div>
             <GoldButton href="/register">Register</GoldButton>
           </div>
 
           {/*
-            Mobile trigger. Opens the overlay and, while it's open, sits
-            visually hidden behind it (overlay is z-50, this header is
-            z-40) — the overlay renders its own visible close button
-            (below) as the actual dismiss control. This one is also
-            pulled out of the tab order while open (defense in depth
-            alongside the overlay's focus trap) and its `aria-controls`
-            only references the overlay's id once that id actually
-            exists in the DOM.
+            Compact mobile-bar group: the MKZORA credit + the menu
+            trigger, together, only below `lg` (1024px) — the same
+            breakpoint the desktop nav/Register group switches on at.
+            `min-w-0` lets this group's own flex children shrink instead
+            of the group pushing the AFFINITY '26 wordmark off-screen;
+            `shrink-0` on each child then keeps neither the badge nor the
+            44px tap target from being squeezed to nothing if space ever
+            does get tight.
           */}
-          <button
-            ref={triggerRef}
-            type="button"
-            tabIndex={mobileOpen ? -1 : 0}
-            aria-expanded={mobileOpen}
-            aria-controls={mobileOpen ? overlayId : undefined}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            onClick={() => setMobileOpen((open) => !open)}
-            className="inline-flex h-11 w-11 items-center justify-center text-ivory lg:hidden"
-          >
-            <HamburgerIcon open={mobileOpen} />
-          </button>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3 lg:hidden">
+            <BrandLogo
+              src={siteBranding.poweredBy.logo}
+              alt={siteBranding.poweredBy.alt}
+              heightClassName="h-4 sm:h-5"
+              padding="sm"
+              className="shrink-0"
+            />
+
+            {/*
+              Mobile trigger. Opens the overlay and, while it's open, sits
+              visually hidden behind it (overlay is z-50, this header is
+              z-40) — the overlay renders its own visible close button
+              (below) as the actual dismiss control. This one is also
+              pulled out of the tab order while open (defense in depth
+              alongside the overlay's focus trap) and its `aria-controls`
+              only references the overlay's id once that id actually
+              exists in the DOM.
+            */}
+            <button
+              ref={triggerRef}
+              type="button"
+              tabIndex={mobileOpen ? -1 : 0}
+              aria-expanded={mobileOpen}
+              aria-controls={mobileOpen ? overlayId : undefined}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              onClick={() => setMobileOpen((open) => !open)}
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-ivory"
+            >
+              <HamburgerIcon open={mobileOpen} />
+            </button>
+          </div>
         </div>
       </SectionContainer>
 
@@ -245,6 +318,18 @@ export function Navbar() {
               Register
             </GoldButton>
           </nav>
+
+          <div className="flex items-center justify-center gap-2 pb-8">
+            <span className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-ivory/50">
+              Powered by
+            </span>
+            <BrandLogo
+              src={siteBranding.poweredBy.logo}
+              alt={siteBranding.poweredBy.alt}
+              heightClassName="h-5"
+              padding="sm"
+            />
+          </div>
         </div>
       ) : null}
     </header>

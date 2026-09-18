@@ -17,6 +17,15 @@ export interface CollegeComboboxProps {
   /** Currently selected college's id, or `null`/`""` if none chosen yet. */
   value: string | null;
   onSelect: (college: College) => void;
+  /**
+   * Phase 38 — fires when the participant picks the trailing "Others"
+   * option instead of a real college. This component never represents
+   * "Others" as a selected value itself (it isn't a `College`); the
+   * caller (`ParticipantStep`) is expected to swap this combobox out for a
+   * plain text field in response, the same way it already owns every
+   * other field-level decision for this step.
+   */
+  onSelectOther: () => void;
   onBlur?: () => void;
   inputRef?: RefObject<HTMLInputElement | null>;
   ariaInvalid?: boolean;
@@ -91,11 +100,21 @@ function borderClass(hasError: boolean): string {
  * doesn't end in a confirmed selection is discarded on blur/Escape, back
  * to whatever the last real selection was (or blank, if there never was
  * one) — see `reconcileDisplayValue`.
+ *
+ * Phase 38: a trailing "Others" row is always rendered as the list's last
+ * option (whether the search matched 0 or many colleges), for a
+ * participant whose college genuinely isn't one of the 87 entries in
+ * `data/colleges.ts`. It's folded into the same keyboard/mouse selection
+ * model as a real college (arrow-key reachable at index `filtered.length`,
+ * `Enter`/click both work) but fires the separate `onSelectOther` callback
+ * instead of `onSelect`, since it isn't a `College` and never becomes
+ * `value` here.
  */
 export function CollegeCombobox({
   id,
   value,
   onSelect,
+  onSelectOther,
   onBlur,
   inputRef: externalInputRef,
   ariaInvalid,
@@ -155,6 +174,12 @@ export function CollegeCombobox({
     closeList();
   }
 
+  /** Phase 38 — the trailing "Others" option's own commit path; see `onSelectOther`'s doc comment above for why this is separate from `commit`. */
+  function commitOther() {
+    onSelectOther();
+    closeList();
+  }
+
   function handleChange(nextValue: string) {
     setQuery(nextValue);
     setIsOpen(true);
@@ -168,7 +193,9 @@ export function CollegeCombobox({
         openList();
         return;
       }
-      setActiveIndex((prev) => Math.min(prev + 1, filtered.length - 1));
+      // Phase 38: the range now extends one past the last real college, to
+      // the trailing "Others" row (index === filtered.length).
+      setActiveIndex((prev) => Math.min(prev + 1, filtered.length));
       return;
     }
 
@@ -184,6 +211,11 @@ export function CollegeCombobox({
 
     if (event.key === "Enter") {
       if (isOpen && activeIndex >= 0) {
+        if (activeIndex === filtered.length) {
+          event.preventDefault();
+          commitOther();
+          return;
+        }
         const college = filtered[activeIndex];
         if (college) {
           event.preventDefault();
@@ -222,9 +254,9 @@ export function CollegeCombobox({
 
   useEffect(() => {
     if (activeIndex < 0) return;
-    const activeCollege = filtered[activeIndex];
-    if (!activeCollege) return;
-    optionRefs.current.get(activeCollege.id)?.scrollIntoView({ block: "nearest" });
+    const key = activeIndex === filtered.length ? "others" : filtered[activeIndex]?.id;
+    if (!key) return;
+    optionRefs.current.get(key)?.scrollIntoView({ block: "nearest" });
   }, [activeIndex, filtered]);
 
   // Click outside the field/popover closes it without committing.
@@ -241,7 +273,14 @@ export function CollegeCombobox({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const activeOptionId = activeIndex >= 0 && filtered[activeIndex] ? `${listboxId}-${filtered[activeIndex]!.id}` : undefined;
+  const activeOptionId =
+    activeIndex < 0
+      ? undefined
+      : activeIndex === filtered.length
+        ? `${listboxId}-others`
+        : filtered[activeIndex]
+          ? `${listboxId}-${filtered[activeIndex]!.id}`
+          : undefined;
 
   return (
     <div ref={wrapperRef} className={["relative", className].join(" ")}>
@@ -314,7 +353,7 @@ export function CollegeCombobox({
                   }}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={[
-                    "flex min-h-11 cursor-pointer items-center justify-between gap-3 border-b border-antique-gold/10 px-4 py-2 font-body text-sm text-ivory last:border-b-0",
+                    "flex min-h-11 cursor-pointer items-center justify-between gap-3 border-b border-antique-gold/10 px-4 py-2 font-body text-sm text-ivory",
                     isActive ? "bg-antique-gold/15" : "",
                   ].join(" ")}
                 >
@@ -324,6 +363,33 @@ export function CollegeCombobox({
               );
             })
           )}
+          {/*
+            Phase 38: always present, regardless of search results — the
+            escape hatch for a participant whose college genuinely isn't
+            one of the 87 entries above. Selecting it hands off to
+            `onSelectOther` rather than `onSelect`; see that prop's doc
+            comment.
+          */}
+          <li
+            ref={(node) => {
+              if (node) optionRefs.current.set("others", node);
+              else optionRefs.current.delete("others");
+            }}
+            id={`${listboxId}-others`}
+            role="option"
+            aria-selected={false}
+            onMouseDown={(event) => {
+              event.preventDefault();
+              commitOther();
+            }}
+            onMouseEnter={() => setActiveIndex(filtered.length)}
+            className={[
+              "flex min-h-11 cursor-pointer items-center gap-2 border-t border-antique-gold/25 px-4 py-2 font-body text-sm italic text-desert-sand",
+              activeIndex === filtered.length ? "bg-antique-gold/15" : "",
+            ].join(" ")}
+          >
+            Others — my college isn&rsquo;t listed
+          </li>
         </ul>
       )}
     </div>

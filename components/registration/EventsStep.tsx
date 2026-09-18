@@ -7,7 +7,7 @@ import { MODE_LABEL } from "@/lib/events/eventLabels";
 import { EventCard } from "@/components/events/EventCard";
 import { EventDetailsModal } from "@/components/events/EventDetailsModal";
 import { OrnamentalFrame } from "@/components/design-system";
-import type { AffinityEvent, EventMode } from "@/types/event";
+import type { AffinityEvent } from "@/types/event";
 
 /** Hand-drawn "×" glyph for the remove-event control — matches the project's no-icon-library convention (see EventBadge's AlertGlyph). */
 function RemoveGlyph() {
@@ -18,31 +18,6 @@ function RemoveGlyph() {
     </svg>
   );
 }
-
-/**
- * Phase 31's mode-based tab set — "All Events / Offline / Online" —
- * replacing this step's old three-way Sports/Culturals/Online category
- * filter (`lib/events/eventGroups.ts`, still used unchanged by the public
- * Events Explorer at `/events`, which this phase's brief doesn't ask to
- * touch). Local to this file rather than promoted into a shared module,
- * the same way `EVENT_GROUPS` itself started life local to
- * `EventsExplorer` before a second consumer justified extracting it — no
- * second consumer for this particular grouping exists yet.
- */
-type ModeTab = "all" | EventMode;
-
-const MODE_TABS: ModeTab[] = ["all", "offline", "online"];
-
-const MODE_TAB_LABEL: Record<ModeTab, string> = {
-  all: "All Events",
-  offline: "Offline",
-  online: "Online",
-};
-
-const SECTION_HEADING: Record<EventMode, string> = {
-  offline: "Offline / On-Campus Events",
-  online: "Online Events",
-};
 
 /**
  * Step 02 — Select Events. Multi-select event picker, reading
@@ -60,16 +35,17 @@ const SECTION_HEADING: Record<EventMode, string> = {
  * `eligibility` text, because no source document defines that as a
  * structured, enforceable rule (see `docs/phase-13-events-step-notes.md`).
  *
- * Phase 31 replaces the category filter with a mode filter — every
- * AFFINITY '26 event's `mode` field is already an unambiguous "offline" or
- * "online" (data/events/sports.ts and data/events/cultural.ts are all
- * "offline"; data/events/online.ts is all "online" — no event's
- * classification was ambiguous or needed to be inferred, so nothing here
- * was reclassified). "All Events" renders both groups as two visually
- * separated sections rather than one flat grid, per the brief's own
- * "visually separated" instruction; "Offline"/"Online" render only their
- * one matching section. Search keeps filtering within whichever tab is
- * active, exactly as it did before.
+ * Phase 31 replaced the category filter with a mode filter ("All Events /
+ * Offline / Online"). Phase 39 (remove Online Events completely) removed
+ * that filter bar entirely: once the Online Events category is excluded
+ * from `allEvents` (see `data/events/index.ts`), every remaining
+ * `registrationMode === "standard"` event is `mode === "offline"` — the
+ * "Online" tab would always show zero results, and "All Events"/"Offline"
+ * would always be identical, so keeping either sub-filter would just be
+ * dead UI. Standard events now render as one plain grid, exactly the way
+ * direct-contact events already did (see `renderDirectContactGrid` below).
+ * Search still filters `allEvents` by name/description, unchanged. See
+ * docs/phase-39-remove-online-events-notes.md.
  *
  * The event/registration pricing restructuring phase layers a second,
  * higher-priority split on top: every event is first divided into
@@ -78,11 +54,11 @@ const SECTION_HEADING: Record<EventMode, string> = {
  * 04, selectable here exactly as before) and "Direct-Contact Events"
  * (`registrationMode === "direct-contact"` — Chess, Badminton, the
  * Track & Field group, Free Fire, PUBG, E-Football, FIFA, Short Film,
- * Sollal Vel). The mode tabs and search still narrow *within* each of
- * those two sections, unchanged. A direct-contact event can never be
- * toggled into `state.selectedEvents` here — its card renders a
- * "Contact In-Charge" trigger (`EventCard`'s own doc comment) that opens
- * the same `EventDetailsModal` `EventsExplorer` uses, instead of the
+ * Sollal Vel). Search still narrows *within* each of those two sections,
+ * unchanged. A direct-contact event can never be toggled into
+ * `state.selectedEvents` here — its card renders a "Contact In-Charge"
+ * trigger (`EventCard`'s own doc comment) that opens the same
+ * `EventDetailsModal` `EventsExplorer` uses, instead of the
  * select/selected toggle every standard card still gets. This keeps
  * every direct-contact event visible on this step (per the phase brief's
  * explicit "must remain visible, not hidden") without it ever being able
@@ -96,7 +72,6 @@ const DIRECT_CONTACT_SUBTEXT =
 
 export function EventsStep() {
   const { state, dispatch } = useRegistration();
-  const [modeTab, setModeTab] = useState<ModeTab>("all");
   const [query, setQuery] = useState("");
   const [openEventId, setOpenEventId] = useState<string | null>(null);
   const searchId = useId();
@@ -118,17 +93,19 @@ export function EventsStep() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (!q) return allEvents;
     return allEvents.filter((event) => {
-      if (modeTab !== "all" && event.mode !== modeTab) return false;
-      if (!q) return true;
       const haystack = event.description ? `${event.name} ${event.description}` : event.name;
       return haystack.toLowerCase().includes(q);
     });
-  }, [modeTab, query]);
+  }, [query]);
 
   // The event/registration pricing restructuring phase's primary split —
-  // computed from `filtered`, so the mode tabs and search still narrow
-  // within each group exactly as before.
+  // computed from `filtered`, so search still narrows within each group
+  // exactly as before. Phase 39 removed the mode sub-filter that used to
+  // layer on top of `standardFiltered` here (see this file's top doc
+  // comment) — every standard event is offline now that the Online Events
+  // category is gone, so there is nothing left to sub-filter.
   const standardFiltered = useMemo(
     () => filtered.filter((event) => event.registrationMode === "standard"),
     [filtered],
@@ -136,15 +113,6 @@ export function EventsStep() {
   const directContactFiltered = useMemo(
     () => filtered.filter((event) => event.registrationMode === "direct-contact"),
     [filtered],
-  );
-
-  const offlineEvents = useMemo(
-    () => standardFiltered.filter((event) => event.mode === "offline"),
-    [standardFiltered],
-  );
-  const onlineEvents = useMemo(
-    () => standardFiltered.filter((event) => event.mode === "online"),
-    [standardFiltered],
   );
 
   const openEvent = openEventId ? (getEventById(openEventId) ?? null) : null;
@@ -231,29 +199,7 @@ export function EventsStep() {
         )}
       </OrnamentalFrame>
 
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div role="group" aria-label="Filter events by mode" className="flex flex-wrap gap-2">
-          {MODE_TABS.map((tab) => {
-            const active = tab === modeTab;
-            return (
-              <button
-                key={tab}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setModeTab(tab)}
-                className={[
-                  "min-h-11 border px-4 py-2 font-body text-sm font-medium uppercase tracking-wide transition-colors duration-base",
-                  active
-                    ? "border-antique-gold bg-antique-gold text-midnight"
-                    : "border-antique-gold/40 text-desert-sand hover:border-antique-gold/70 hover:text-ivory",
-                ].join(" ")}
-              >
-                {MODE_TAB_LABEL[tab]}
-              </button>
-            );
-          })}
-        </div>
-
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <div className="w-full sm:w-72">
           <label htmlFor={searchId} className="sr-only">
             Search events by name
@@ -285,29 +231,7 @@ export function EventsStep() {
             <div>
               <h4 className="font-display text-lg font-semibold tracking-wide text-ivory">{STANDARD_HEADING}</h4>
               <p className="mt-1 font-body text-sm text-desert-sand">{STANDARD_SUBTEXT}</p>
-
-              {modeTab === "all" ? (
-                <div className="mt-5 flex flex-col gap-10">
-                  {offlineEvents.length > 0 && (
-                    <div>
-                      <h4 className="font-display text-base font-semibold tracking-wide text-ivory">
-                        {SECTION_HEADING.offline}
-                      </h4>
-                      <div className="mt-4">{renderStandardGrid(offlineEvents)}</div>
-                    </div>
-                  )}
-                  {onlineEvents.length > 0 && (
-                    <div>
-                      <h4 className="font-display text-base font-semibold tracking-wide text-ivory">
-                        {SECTION_HEADING.online}
-                      </h4>
-                      <div className="mt-4">{renderStandardGrid(onlineEvents)}</div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-5">{renderStandardGrid(standardFiltered)}</div>
-              )}
+              <div className="mt-5">{renderStandardGrid(standardFiltered)}</div>
             </div>
           )}
 

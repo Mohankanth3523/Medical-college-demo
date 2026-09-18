@@ -38,18 +38,26 @@ export interface Participant {
    * Phase 29 (college dropdown): the selected college's id in
    * `data/colleges.ts`, or `null` when nothing has been chosen yet. This
    * is the field validation actually checks — a participant can only
-   * reach this state by picking a real entry from `CollegeCombobox`, never
-   * by typing arbitrary text, so a non-null `collegeId` is proof the
-   * selection is one of the 86 official colleges.
+   * reach a non-null state by picking a real entry from `CollegeCombobox`
+   * or its trailing "Others" option, never by typing arbitrary text
+   * directly into this field.
+   *
+   * Phase 38: can also be `OTHER_COLLEGE_ID` (`data/colleges.ts`) — the
+   * participant explicitly chose "my college isn't listed," and
+   * `collegeName` below is then a manually-typed value rather than one
+   * looked up from `data/colleges.ts`. It is still not arbitrary text
+   * typed directly into this field without that explicit choice first.
    */
   collegeId: string | null;
   /**
-   * The complete official name of the college `collegeId` points to,
-   * kept alongside the id (rather than looked up fresh everywhere it's
+   * The complete official name of the college `collegeId` points to, kept
+   * alongside the id (rather than looked up fresh everywhere it's
    * displayed) so every existing reader of this field — `ReviewStep`,
    * `RegistrationSummary`, `RegistrationPass` — keeps working unchanged.
    * Always set together with `collegeId` by `CollegeCombobox`'s
-   * `onSelect`; never partially typed text.
+   * `onSelect` — except when `collegeId === OTHER_COLLEGE_ID` (Phase 38),
+   * where this is instead whatever the participant typed into the manual
+   * college-name field `ParticipantStep` swaps in for that case.
    */
   collegeName: string;
   yearOfStudy: YearOfStudy | null;

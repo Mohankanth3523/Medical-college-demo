@@ -3,35 +3,63 @@
  * for the registration wizard's College Name field (`CollegeCombobox`,
  * `components/registration/CollegeCombobox.tsx`).
  *
- * Source: the college list document supplied for this phase (86 entries,
- * numbered 1 through 86 in the source). Every `name` below is transcribed
- * verbatim — same spelling, same punctuation, same "&" vs. "and", same
- * comma placement as the source. Nothing here is corrected, shortened,
- * renamed, merged, or supplemented from general knowledge: the transcription
- * was produced programmatically (each source paragraph copied character-
- * for-character into this array) specifically so no name could drift
- * through manual retyping, consistent with this project's TRUTH MODE rule
- * for institutional information. Two pairs of entries look similar at a
- * glance (`college-057`/`college-070`/`college-079` are all "Vinayaka"/
- * "Vinayaga" institutions, and `college-082`/`college-083` are two
- * separate Dhanalakshmi Srinivasan institutions in Perambalur) — the
+ * Source: the college list document supplied for Phase 30 (86 entries,
+ * numbered 1 through 86 in the source). Every one of those `name`s is
+ * transcribed verbatim — same spelling, same punctuation, same "&" vs.
+ * "and", same comma placement as the source. Nothing here is corrected,
+ * shortened, renamed, merged, or supplemented from general knowledge: the
+ * transcription was produced programmatically (each source paragraph
+ * copied character-for-character into this array) specifically so no name
+ * could drift through manual retyping, consistent with this project's
+ * TRUTH MODE rule for institutional information. Two pairs of entries look
+ * similar at a glance (`college-057`/`college-070`/`college-079` are all
+ * "Vinayaka"/"Vinayaga" institutions, and `college-082`/`college-083` are
+ * two separate Dhanalakshmi Srinivasan institutions in Perambalur) — the
  * source lists all of them as distinct entries, so all are kept, per the
  * phase brief's explicit "if two entries are separately present in the
  * source, keep both as separate entries" instruction.
  *
- * `sourceOrder` (1–86) preserves the source document's own ordering
- * independently of `id`/array position, so the original numbered list can
+ * `college-087` ("SRM Medical College, Chennai") is a Phase 38 addition —
+ * not part of the 86-entry source docx above. It was supplied as a direct,
+ * explicit instruction from this project's own operator to add that named
+ * college, not transcribed from a document, so it's recorded here with
+ * that provenance rather than folded silently into the "86 official
+ * entries" description — see docs/phase-38-college-list-addition-notes.md.
+ * It is a distinct institution from `college-086` ("Trichy SRM Medical
+ * College Hospital & Research Centre, Trichy") — different campus,
+ * different city — not a duplicate or a correction of that entry.
+ *
+ * `sourceOrder` 1–86 preserves the original source document's own
+ * ordering independently of `id`/array position, so that numbered list can
  * always be reconstructed even if this array is ever resorted for a UX
  * reason (none is applied here — array order and `sourceOrder` currently
- * agree, on purpose).
+ * agree, on purpose). `college-087` continues the sequence at 87 rather
+ * than being spliced into the middle, so 1–86 still means exactly what it
+ * always meant.
  */
 
 export interface College {
   id: string;
   name: string;
-  /** 1-based position in the original source document (1–86). */
+  /**
+   * 1-based position in the original 86-entry source document, or — for
+   * `college-087` onward — the order later entries were added in, each
+   * continuing the sequence rather than being inserted into 1–86.
+   */
   sourceOrder: number;
 }
+
+/**
+ * Sentinel `Participant.collegeId` value for "my college isn't in this
+ * list" — `CollegeCombobox` offers it as a trailing option, and selecting
+ * it swaps the field to a plain text input (`ParticipantStep`) where the
+ * participant types their own college name into `collegeName` instead.
+ * Deliberately not a `College` in the array below: it is a UI affordance,
+ * not an official, sourced institution, so keeping it out of `colleges`
+ * keeps that array's own integrity checks meaningful as a count of real
+ * entries. See docs/phase-38-college-list-addition-notes.md.
+ */
+export const OTHER_COLLEGE_ID = "others" as const;
 
 export const colleges: College[] = [
   { id: "college-001", name: "Madras Medical College", sourceOrder: 1 },
@@ -120,6 +148,7 @@ export const colleges: College[] = [
   { id: "college-084", name: "Karpagam Faculty of Medical Sciences & Research, Coimbatore", sourceOrder: 84 },
   { id: "college-085", name: "Sree Mookambika Institute of Medical Sciences, Kanyakumari", sourceOrder: 85 },
   { id: "college-086", name: "Trichy SRM Medical College Hospital & Research Centre, Trichy", sourceOrder: 86 },
+  { id: "college-087", name: "SRM Medical College, Chennai", sourceOrder: 87 },
 ];
 
 /**
@@ -127,11 +156,14 @@ export const colleges: College[] = [
  * module (Next.js executes this at build/prerender time as well as at
  * runtime), so a future edit that accidentally drops, duplicates, or
  * miscounts an entry fails loudly instead of silently shipping a wrong
- * dropdown. Per the phase brief: "The build should fail... if the list
- * accidentally contains a duplicate ID or incorrect count."
+ * dropdown. Per the Phase 30 brief: "The build should fail... if the list
+ * accidentally contains a duplicate ID or incorrect count." Phase 38 raised
+ * the expected count from 86 (the original source document) to 87 (adding
+ * `college-087`, a directly-requested addition — see this file's own top
+ * comment) and extended the sequence-gap check to match.
  */
-if (colleges.length !== 86) {
-  throw new Error(`Expected 86 official AFFINITY '26 colleges, found ${colleges.length}.`);
+if (colleges.length !== 87) {
+  throw new Error(`Expected 87 AFFINITY '26 colleges (86 sourced + 1 later addition), found ${colleges.length}.`);
 }
 
 const seenIds = new Set<string>();
@@ -147,9 +179,9 @@ for (const college of colleges) {
   }
   seenSourceOrders.add(college.sourceOrder);
 }
-for (let expected = 1; expected <= 86; expected += 1) {
+for (let expected = 1; expected <= 87; expected += 1) {
   if (!seenSourceOrders.has(expected)) {
-    throw new Error(`Missing college sourceOrder ${expected} — the 1–86 source sequence has a gap.`);
+    throw new Error(`Missing college sourceOrder ${expected} — the 1–87 sequence has a gap.`);
   }
 }
 

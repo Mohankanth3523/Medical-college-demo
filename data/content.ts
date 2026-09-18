@@ -45,6 +45,15 @@ export const aboutCause = {
    * place in the source documents where the cause is connected to a
    * specific, named piece of programming, so it's kept here as its own
    * field rather than folded into `description` above.
+   *
+   * Phase 39 (remove Online Events completely): Pencil Painting is one of
+   * `onlineCulturalEvents` (data/events/online.ts), removed from every
+   * participant-facing surface that phase. This field itself is left
+   * untouched — it's sourced content, not deleted, per that phase's own
+   * "do not delete official source documents" — but `components/sections/
+   * Cause.tsx` no longer renders it, since a promotional aside pointing a
+   * participant at an event they can no longer find or select would be
+   * misleading. See docs/phase-39-remove-online-events-notes.md.
    */
   connectedEvent: {
     name: "Pencil Painting",

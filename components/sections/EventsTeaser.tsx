@@ -21,14 +21,21 @@ import { eventCounts } from "@/data/events";
  *
  * Every number here is `eventCounts` (`data/events/index.ts`), a plain
  * `.length` count of the real event records — nothing here is a
- * fabricated or rounded figure. The three-way Sports/Culturals/Online
- * split mirrors the same grouping the public Events Explorer and the
- * registration wizard's Events step already use
- * (`lib/events/eventGroups.ts`'s `EVENT_GROUP_CATEGORIES`), just summed
- * into a count instead of used as a filter — Culturals combines the
- * onstage + offstage cultural categories, Online combines online-
- * cultural + online-esports, matching that existing taxonomy exactly
- * rather than inventing a different grouping for this one section.
+ * fabricated or rounded figure. Culturals combines the onstage + offstage
+ * cultural categories, matching `lib/events/eventGroups.ts`'s
+ * `EVENT_GROUP_CATEGORIES` grouping exactly, just summed into a count
+ * instead of used as a filter.
+ *
+ * Phase 39 (remove Online Events completely): the old three-way Sports/
+ * Culturals/Online split replaced its "Online" tile (online-cultural +
+ * online-esports combined) with an "Esports" tile — the Online Events
+ * *category* (online-cultural) is gone from `allEvents`/`eventCounts`
+ * entirely, per that phase's brief, but the 4 online-esports events
+ * (E-Football, FIFA, PUBG, Free Fire) are still real, visible,
+ * direct-contact events on this site, so this landing-page stat still
+ * accounts for them under their own honest label rather than silently
+ * dropping to a two-tile layout. See
+ * docs/phase-39-remove-online-events-notes.md.
  *
  * "The Royal Courts" is the same design-copy name the real `/events`
  * page's own heading already uses (`EventsExplorer.tsx`) — this section
@@ -44,14 +51,14 @@ import { eventCounts } from "@/data/events";
  * atmosphere feels continuous rather than switching on and off section
  * to section), a `GeometricBand` opening the section, a small `Lantern`
  * beside the "Events" eyebrow, and one flat-line glyph per stat card
- * (`SportsGlyph`/`CulturalsGlyph`/`OnlineGlyph`, defined below) so the
+ * (`SportsGlyph`/`CulturalsGlyph`/`EsportsGlyph`, defined below) so the
  * three cards read as three distinct categories at a glance instead of
  * three identical number tiles differing only in their label text.
  */
 const STATS = [
   { label: "Sports", value: eventCounts.sports, Glyph: SportsGlyph },
   { label: "Culturals", value: eventCounts.culturalOnstage + eventCounts.culturalOffstage, Glyph: CulturalsGlyph },
-  { label: "Online", value: eventCounts.onlineCultural + eventCounts.onlineEsports, Glyph: OnlineGlyph },
+  { label: "Esports", value: eventCounts.esports, Glyph: EsportsGlyph },
 ] as const;
 
 export function EventsTeaser() {
@@ -81,7 +88,7 @@ export function EventsTeaser() {
             </h2>
             <GoldDivider size="lg" />
             <p className="max-w-xl font-body text-base text-desert-sand sm:text-lg">
-              {eventCounts.total} events across sports, culturals, and online categories.
+              {eventCounts.total} events across sports, culturals, and esports categories.
             </p>
           </div>
         </ScrollReveal>
@@ -119,7 +126,7 @@ export function EventsTeaser() {
  * `Lantern`/`Crescent`/the rest of this design system: `currentColor`
  * stroke, no fill, no gradient. Kept local to this file (not promoted to
  * `design-system/`) since nothing else on the site needs a "sports"/
- * "culturals"/"online" icon yet — the same "add it here first, promote
+ * "culturals"/"esports" icon yet — the same "add it here first, promote
  * it later if a second consumer shows up" approach `Gallery.tsx`'s own
  * local `ArrowGlyph`/`CloseGlyph` already follow.
  */
@@ -154,15 +161,16 @@ function CulturalsGlyph({ className = "" }: { className?: string }) {
   );
 }
 
-function OnlineGlyph({ className = "" }: { className?: string }) {
+function EsportsGlyph({ className = "" }: { className?: string }) {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      {/* A simple screen/monitor — the plainest honest icon for "online" without inventing a wifi/globe metaphor the brief never mentions. */}
+      {/* A simple game controller — the plainest honest icon for the esports titles (E-Football, FIFA, PUBG, Free Fire) this tile now counts, replacing the Phase 25 monitor glyph once the "Online" stat became an esports-only one (Phase 39). */}
       <g fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3.5" y="5" width="17" height="11.5" rx="1" />
-        <path d="M9 20 H15" />
-        <path d="M12 16.5 V20" />
-        <path d="M7 9 L11 12 L7 15" />
+        <path d="M7 8.5 H17 C19 8.5 20.5 10.2 20.5 12.5 C20.5 14.6 19.3 16 17.8 16 C16.8 16 16.3 15.4 15.6 14.4 C15.1 13.7 14.6 13.2 12 13.2 C9.4 13.2 8.9 13.7 8.4 14.4 C7.7 15.4 7.2 16 6.2 16 C4.7 16 3.5 14.6 3.5 12.5 C3.5 10.2 5 8.5 7 8.5 Z" />
+        <path d="M7.5 10.8 V12.9" />
+        <path d="M6.45 11.85 H8.55" />
+        <circle cx="16.2" cy="10.6" r="0.6" fill="currentColor" stroke="none" />
+        <circle cx="17.8" cy="12.2" r="0.6" fill="currentColor" stroke="none" />
       </g>
     </svg>
   );
