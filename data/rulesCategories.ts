@@ -166,13 +166,10 @@ export const ruleCategories: RuleCategory[] = [
       cult(9),
       cult(10),
       cult(11),
-      cult(15),
-      cult(16),
       restr(3),
       restr(4),
       restr(5),
       restr(6),
-      restr(9),
     ],
   },
 ];
